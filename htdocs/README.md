@@ -1,4 +1,6 @@
-# RevisionHub
+# Answered
+
+**Website: [https://answered.qzz.io/](https://answered.qzz.io/)**
 
 A complete, self-hosted revision platform for students: subjects, rich-text
 notes with images, past-paper PDFs, search and a secure admin dashboard.
@@ -54,7 +56,8 @@ deployed as plain files over FTP.
      session cookies are marked `Secure`.
 
 4. **Upload the files**
-   Upload the whole project to `public_html/` with an FTP client, keeping the
+   Upload the contents of the local `htdocs/` folder into your domain's
+   `htdocs/` folder in VistaPanel (or `public_html/` on cPanel), keeping the
    folder structure (the `.htaccess` files must be uploaded too — enable
    “show hidden files” in your FTP client).
 
@@ -63,7 +66,7 @@ deployed as plain files over FTP.
      of at least 32 characters. Setup is disabled while this value is empty.
      Generate a token with `php -r "echo bin2hex(random_bytes(32));"`.
      Enter it in the setup authorization form; do not put it in a URL.
-   * Visit `https://yourdomain.com/install.php`, create the administrator
+   * Visit `https://answered.qzz.io/install.php`, create the administrator
      account, then **delete `install.php`** from the server.
    * No directories need to be writable: images and PDFs are added as external
      links, not uploaded to the server.
@@ -98,7 +101,7 @@ php -S localhost:8000 router.php
 ## Project structure
 
 ```text
-public_html/
+htdocs/
 ├── index.php              public front controller (routing)
 ├── install.php            one-time installer (delete after use)
 ├── schema.sql             database schema
