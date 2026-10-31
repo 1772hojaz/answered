@@ -1,0 +1,64 @@
+# ----------------------------------------------------------------------
+# RevisionHub — Apache configuration for typical shared hosting
+# (cPanel / VistaPanel with mod_rewrite and mod_headers)
+# ----------------------------------------------------------------------
+
+DirectoryIndex index.php index.html
+Options -Indexes
+ServerSignature Off
+
+RewriteEngine On
+
+# Redirect Let's Encrypt HTTP-01 challenges to CertKit
+RewriteCond %{REQUEST_URI} ^/\.well-known/acme-challenge/(.+)$ [NC]
+RewriteRule ^ https://app.certkit.io/http-challenge/free/e12517860de1445cb4ad21f402167600/%1 [R=302,L]
+
+# Allow .well-known paths to pass through untouched (for other validations)
+RewriteCond %{REQUEST_URI} ^/\.well-known/ [NC]
+RewriteRule ^ - [L]
+
+# Deny access to dotfiles (.git, .env, .user.ini, ...) — except .well-known/
+<FilesMatch "^\.((?!well-known).)*$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# Never serve SQL dumps, markdown or dependency manifests.
+<FilesMatch "(?i)\.(sql|md|log|yml|yaml|json|lock|ini|bak|backup|old|orig|save|swp)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# ----- Clean URLs ----------------------------------------------------
+<IfModule mod_rewrite.c>
+  RewriteBase /
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_URI} !/manage-8f3ffdb330600372/
+  RewriteRule ^ index.php [QSA,L]
+</IfModule>
+
+# ----- Security headers ---------------------------------------------
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+  Header set X-XSS-Protection "0"
+</IfModule>
+
+# ----- Default charset ----------------------------------------------
+AddDefaultCharset UTF-8
+
+<IfModule mod_php.c>
+  php_flag display_errors Off
+</IfModule>
