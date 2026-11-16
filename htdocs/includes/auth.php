@@ -23,11 +23,12 @@ function current_admin(): ?array
         return null;
     }
 
-    $user = q_row('SELECT id, username, email, created_at FROM users WHERE id = ?', [
+    $user = q_row('SELECT id, username, email, role, active, auth_version, created_at FROM users WHERE id = ?', [
         (int) $_SESSION['admin_id'],
     ]);
 
-    if ($user === null) {
+    if ($user === null || !(int) $user['active'] || !in_array($user['role'], ['admin', 'editor'], true)
+        || (int) ($_SESSION['auth_version'] ?? 0) !== (int) $user['auth_version']) {
         admin_logout();
         $cached = null;
         return null;
@@ -126,7 +127,7 @@ function login_throttle_check(string $username): void
  */
 function admin_login(string $username, string $password): bool
 {
-    $user = q_row('SELECT id, password_hash FROM users WHERE username = ? OR email = ?', [
+    $user = q_row('SELECT id, password_hash, active, role, auth_version FROM users WHERE username = ? OR email = ?', [
         $username,
         $username,
     ]);
@@ -138,7 +139,7 @@ function admin_login(string $username, string $password): bool
         return false;
     }
 
-    if (!password_verify($password, (string) $user['password_hash'])) {
+    if (!password_verify($password, (string) $user['password_hash']) || !(int) $user['active'] || !in_array($user['role'], ['admin','editor'], true)) {
         return false;
     }
 
@@ -152,6 +153,7 @@ function admin_login(string $username, string $password): bool
 
     session_regenerate_id(true);
     $_SESSION['admin_id'] = (int) $user['id'];
+    $_SESSION['auth_version'] = (int) $user['auth_version'];
     unset($_SESSION['csrf_token']);
 
     return true;
