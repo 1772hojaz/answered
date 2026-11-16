@@ -309,7 +309,7 @@ function notes_for_subject(int $subjectId, string $status = 'published', ?int $t
     $sql = 'SELECT n.*, t.name AS topic_name, t.slug AS topic_slug
             FROM notes n
             LEFT JOIN topics t ON t.id = n.topic_id
-            WHERE n.subject_id = ? AND n.status = ?';
+            WHERE n.deleted_at IS NULL AND n.subject_id = ? AND n.status = ?';
     $params = [$subjectId, $status];
     if ($topicId !== null) {
         $sql .= ' AND n.topic_id = ?';
@@ -325,7 +325,7 @@ function recent_notes(int $limit = 8): array
         'SELECT n.*, s.name AS subject_name, s.slug AS subject_slug
          FROM notes n
          JOIN subjects s ON s.id = n.subject_id
-         WHERE n.status = ?
+         WHERE n.deleted_at IS NULL AND n.status = ?
          ORDER BY COALESCE(n.published_at, n.updated_at) DESC, n.id DESC
          LIMIT ' . max(1, (int) $limit),
         ['published']
@@ -340,7 +340,7 @@ function note_by_slug(string $slug): ?array
          FROM notes n
          JOIN subjects s ON s.id = n.subject_id
          LEFT JOIN topics t ON t.id = n.topic_id
-         WHERE n.slug = ? AND n.status = ?',
+         WHERE n.deleted_at IS NULL AND n.slug = ? AND n.status = ?',
         [$slug, 'published']
     );
 }
@@ -361,7 +361,7 @@ function note_by_id(int $id): ?array
 function papers_for_subject(int $subjectId): array
 {
     return q_all(
-        'SELECT * FROM past_papers WHERE subject_id = ? ORDER BY year DESC, paper_number, title',
+        'SELECT * FROM past_papers WHERE deleted_at IS NULL AND subject_id = ? ORDER BY year DESC, paper_number, title',
         [$subjectId]
     );
 }
@@ -372,6 +372,7 @@ function recent_papers(int $limit = 8): array
         'SELECT p.*, s.name AS subject_name, s.slug AS subject_slug
          FROM past_papers p
          JOIN subjects s ON s.id = p.subject_id
+         WHERE p.deleted_at IS NULL
          ORDER BY p.created_at DESC, p.id DESC
          LIMIT ' . max(1, (int) $limit)
     );
@@ -383,7 +384,7 @@ function paper_by_slug(string $slug): ?array
         'SELECT p.*, s.name AS subject_name, s.slug AS subject_slug
          FROM past_papers p
          JOIN subjects s ON s.id = p.subject_id
-         WHERE p.slug = ?',
+         WHERE p.deleted_at IS NULL AND p.slug = ?',
         [$slug]
     );
 }
@@ -396,11 +397,12 @@ function paper_by_id(int $id): ?array
 function all_papers_paginated(int $page, int $perPage = 20): array
 {
     $offset = max(0, ($page - 1) * $perPage);
-    $total = (int) q_one('SELECT COUNT(*) FROM past_papers');
+    $total = (int) q_one('SELECT COUNT(*) FROM past_papers WHERE deleted_at IS NULL');
     $rows = q_all(
         'SELECT p.*, s.name AS subject_name, s.slug AS subject_slug
          FROM past_papers p
          JOIN subjects s ON s.id = p.subject_id
+         WHERE p.deleted_at IS NULL
          ORDER BY p.year DESC, p.paper_number, p.title
          LIMIT ' . $perPage . ' OFFSET ' . $offset
     );
@@ -412,9 +414,9 @@ function stats_counts(): array
     return [
         'subjects'   => (int) q_one('SELECT COUNT(*) FROM subjects'),
         'topics'     => (int) q_one('SELECT COUNT(*) FROM topics'),
-        'notes'      => (int) q_one('SELECT COUNT(*) FROM notes'),
-        'drafts'     => (int) q_one("SELECT COUNT(*) FROM notes WHERE status = 'draft'"),
-        'papers'     => (int) q_one('SELECT COUNT(*) FROM past_papers'),
+        'notes'      => (int) q_one('SELECT COUNT(*) FROM notes WHERE deleted_at IS NULL'),
+        'drafts'     => (int) q_one("SELECT COUNT(*) FROM notes WHERE deleted_at IS NULL AND status = 'draft'"),
+        'papers'     => (int) q_one('SELECT COUNT(*) FROM past_papers WHERE deleted_at IS NULL'),
         'images'     => (int) q_one('SELECT COUNT(*) FROM images'),
         'users'      => (int) q_one('SELECT COUNT(*) FROM users'),
     ];
@@ -438,7 +440,7 @@ function search_all(string $term, int $limit = 25): array
         'SELECT n.id, n.title, n.slug, n.content, s.name AS subject_name, s.slug AS subject_slug
          FROM notes n
          JOIN subjects s ON s.id = n.subject_id
-         WHERE n.status = ? AND (n.title LIKE ? OR n.content LIKE ?)
+         WHERE n.deleted_at IS NULL AND n.status = ? AND (n.title LIKE ? OR n.content LIKE ?)
          ORDER BY n.title LIMIT ' . $limit,
         ['published', $like, $like]
     );
@@ -448,8 +450,8 @@ function search_all(string $term, int $limit = 25): array
                 s.name AS subject_name, s.slug AS subject_slug
          FROM past_papers p
          JOIN subjects s ON s.id = p.subject_id
-         WHERE p.title LIKE ? OR p.description LIKE ? OR s.name LIKE ?
-            OR p.year LIKE ? OR p.exam_board LIKE ? OR p.paper_number LIKE ?
+         WHERE p.deleted_at IS NULL AND (p.title LIKE ? OR p.description LIKE ? OR s.name LIKE ?
+            OR p.year LIKE ? OR p.exam_board LIKE ? OR p.paper_number LIKE ?)
          ORDER BY p.year DESC, p.title LIMIT ' . $limit,
         [$like, $like, $like, $like, $like, $like]
     );
@@ -466,9 +468,9 @@ function subjects_with_counts(): array
     return q_all(
         'SELECT s.*,
                 (SELECT COUNT(*) FROM notes n
-                  WHERE n.subject_id = s.id AND n.status = ?) AS note_count,
+                  WHERE n.deleted_at IS NULL AND n.subject_id = s.id AND n.status = ?) AS note_count,
                 (SELECT COUNT(*) FROM past_papers p
-                  WHERE p.subject_id = s.id) AS paper_count
+                  WHERE p.deleted_at IS NULL AND p.subject_id = s.id) AS paper_count
          FROM subjects s
          ORDER BY s.sort_order, s.name',
         ['published']
@@ -484,7 +486,7 @@ function related_notes(int $subjectId, int $excludeNoteId, int $limit = 6): arra
         'SELECT n.id, n.title, n.slug, n.updated_at, t.name AS topic_name
          FROM notes n
          LEFT JOIN topics t ON t.id = n.topic_id
-         WHERE n.subject_id = ? AND n.status = ? AND n.id <> ?
+         WHERE n.deleted_at IS NULL AND n.subject_id = ? AND n.status = ? AND n.id <> ?
          ORDER BY COALESCE(n.published_at, n.updated_at) DESC, n.id DESC
          LIMIT ' . max(1, (int) $limit),
         [$subjectId, 'published', $excludeNoteId]
