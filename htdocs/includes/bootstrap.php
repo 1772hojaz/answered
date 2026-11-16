@@ -74,3 +74,4 @@ require_once APP_ROOT . '/includes/functions.php';
 require_once APP_ROOT . '/includes/sanitize.php';
 require_once APP_ROOT . '/includes/uploads.php';
 require_once APP_ROOT . '/includes/auth.php';
+require_once APP_ROOT . '/includes/workspace.php';
