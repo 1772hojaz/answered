@@ -13,8 +13,11 @@ if ($hasQuery) {
 
 $total = count($results['subjects']) + count($results['notes']) + count($results['papers']);
 
-$GLOBALS['page_title'] = $hasQuery ? 'Search: ' . $term : 'Search';
-$GLOBALS['nav_active'] = '';
+$GLOBALS['page_title'] = $hasQuery ? 'Search ZIMSEC Resources: ' . $term : 'Search ZIMSEC Revision Resources';
+$GLOBALS['page_description'] = 'Search ZIMSEC subjects, revision notes, and past papers on Answered' . ($hasQuery ? ' for ' . $term . '.' : '. Find resources for your next study session.');
+$GLOBALS['canonical_url'] = url('/search', $hasQuery ? ['q' => $term] : []);
+$GLOBALS['page_noindex'] = true;
+$GLOBALS['nav_active'] = 'search';
 $GLOBALS['search_value'] = $term;
 ?>
 <div class="gfg-layout">
@@ -25,7 +28,9 @@ $GLOBALS['search_value'] = $term;
       <?php breadcrumbs([['label' => 'Home', 'href' => url('/')], ['label' => 'Search']]); ?>
 
       <header class="gfg-page-head">
-        <h1>Search</h1>
+        <span class="eyebrow section-eyebrow">A LITTLE CURIOSITY GOES A LONG WAY</span>
+        <h1>Find your next answer.</h1>
+        <p class="section-sub">Search across ZIMSEC subjects, revision notes, and past papers.</p>
       </header>
 
       <form class="gfg-search-form" action="<?= e(form_action('/search')) ?>" method="get" role="search">
