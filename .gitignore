@@ -1,3 +1,8 @@
 /answered-design-update.zip
 __pycache__/
 *.py[cod]
+/htdocs/config/config.php
+/htdocs/config/config.local.php
+.env
+.env.*
+!.env.example

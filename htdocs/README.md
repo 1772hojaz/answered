@@ -32,7 +32,8 @@ deployed as plain files over FTP.
    (Alternatively run `install.php` in step 5, which creates the tables for you.)
 
 3. **Configure the app**
-   Edit `config/config.php` — it is the only file you need to touch:
+   Copy `config/config.sample.php` to `config/config.php`, then edit that
+   private copy. Git ignores `config.php` and `config.local.php`:
 
    ```php
    'db' => [

@@ -58,7 +58,9 @@ not uploaded to the hosting account by the application.
 
 1. Open **MySQL Databases** and create the database. Record the exact database
    hostname, full database name, username, and password shown by the host.
-2. Edit `htdocs/config/config.php` with those connection details:
+2. Copy `htdocs/config/config.sample.php` to `htdocs/config/config.php`, then
+   edit the copy with those connection details. Private configuration files
+   are ignored by Git:
 
    ```php
    'db' => [
