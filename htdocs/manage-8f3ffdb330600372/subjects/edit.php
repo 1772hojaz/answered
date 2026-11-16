@@ -50,12 +50,14 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 'INSERT INTO subjects (name, slug, description, icon_path, sort_order, created_at) VALUES (?, ?, ?, ?, ?, NOW())',
                 [$name, $slug, $description !== '' ? $description : null, $iconPath, $sortOrder]
             );
+            workspace_audit('create','subjects',(int)db()->lastInsertId(),$name);
             flash_set('success', 'Subject created.');
         } else {
             q(
                 'UPDATE subjects SET name = ?, description = ?, icon_path = ?, sort_order = ? WHERE id = ?',
                 [$name, $description !== '' ? $description : null, $iconPath, $sortOrder, (int) $subject['id']]
             );
+            workspace_audit('update','subjects',$id,$name);
             flash_set('success', 'Subject updated.');
         }
 

@@ -20,7 +20,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 
             if ($noteCount > 0 || $paperCount > 0) {
                 flash_set('error', sprintf(
-                    'Cannot delete "%s" while it still has %d note(s) and %d past paper(s). Delete or move them first.',
+                    'Cannot delete "%s" while it still has %d note(s) and %d past paper(s), including trash. Reassign them or permanently delete the trashed resources first.',
                     $subject['name'],
                     $noteCount,
                     $paperCount
@@ -34,6 +34,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                         delete_image((int) $imageRow['id']);
                     }
                 }
+                workspace_audit('delete','subjects',$id,'Deleted subjects record #' . $id);
                 flash_set('success', 'Subject deleted.');
             }
         }
