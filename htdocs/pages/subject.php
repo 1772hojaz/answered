@@ -33,10 +33,13 @@ foreach ($topics as $topic) {
     $topicNames[(string) $topic['id']] = (string) $topic['name'];
 }
 
-$GLOBALS['page_title'] = (string) $subject['name'];
-$GLOBALS['page_description'] = $subject['description']
-    ? mb_substr((string) $subject['description'], 0, 160, 'UTF-8')
-    : 'Revision notes and past papers for ' . $subject['name'] . '.';
+$subjectLabel = 'ZIMSEC ' . $subject['name'];
+$resourceLabel = $section === 'notes' ? 'Revision Notes' : ($section === 'papers' ? 'Past Papers' : 'Notes & Past Papers');
+$GLOBALS['page_title'] = $subjectLabel . ' - ' . $resourceLabel;
+$GLOBALS['page_description'] = 'Explore ' . $subjectLabel . ' ' . strtolower($resourceLabel) . ' on Answered. '
+    . ($subject['description'] ?: 'Review key topics and practise exam questions at your own pace.');
+$GLOBALS['canonical_url'] = url('/subjects/' . $subject['slug'] . ($section === 'notes' ? '/notes' : ($section === 'papers' ? '/past-papers' : '')));
+$GLOBALS['seo_page_type'] = 'CollectionPage';
 $GLOBALS['nav_active'] = 'subjects';
 $GLOBALS['subject_slug_active'] = (string) $subject['slug'];
 ?>
@@ -58,7 +61,7 @@ $GLOBALS['subject_slug_active'] = (string) $subject['slug'];
           <span class="subject-header-letter" aria-hidden="true"><?= e(mb_strtoupper(mb_substr((string) $subject['name'], 0, 1, 'UTF-8'), 'UTF-8')) ?></span>
         <?php endif; ?>
         <div class="subject-header-text">
-          <h1><?= e($subject['name']) ?></h1>
+          <h1><?= e($subjectLabel) ?><?= $section === 'notes' ? ' Notes' : ($section === 'papers' ? ' Past Papers' : '') ?></h1>
           <?php if (!empty($subject['description'])): ?>
             <p><?= nl2br(e($subject['description'])) ?></p>
           <?php endif; ?>
