@@ -126,6 +126,52 @@ php -S localhost:8000 router.php
 Open `http://localhost:8000/`. Use the router because PHP's development
 server does not read Apache `.htaccess` rules.
 
+## Admin workspace
+
+The admin workspace includes account management, password changes, active and
+disabled accounts, administrator/editor permissions, searchable and paginated
+notes/papers/images, ZIMSEC level and syllabus fields, editable SEO previews,
+server-side note recovery, revision history, trash/restore, and activity history.
+
+**Existing installations must import
+`htdocs/migrations/20261116_admin.sql` once before uploading this release.**
+See `htdocs/migrations/README.md` for upgrade order and recovery behavior. Fresh
+installations use the updated `schema.sql` without running the migration.
+
+For local integration testing only, use an isolated seeded preview database and
+set `ANSWERED_TEST_PASSWORD` to its administrator password, then run:
+
+```sh
+python tests/admin_workflows.py --base-url http://127.0.0.1:8000 --admin-user preview
+```
+
+The workflow tests accept only loopback URLs and create accounts and resource
+records with a unique QA prefix. They cover authorization, CSRF, autosave,
+optimistic conflicts, revisions, trash, classification, SEO overrides, pagination,
+and session invalidation. Use a disposable database for these tests.
+
+## Search metadata
+
+Public pages generate unique ZIMSEC titles and descriptions, canonical URLs,
+Open Graph and Twitter metadata, and JSON-LD for the site, breadcrumbs, and
+learning resources. Search results, errors, and admin pages are not indexable.
+This is an independent study platform; metadata does not claim ZIMSEC affiliation.
+
+The canonical origin defaults to `https://answered.qzz.io`. When hosting on a
+different domain, add `app.site_url` to `htdocs/config/config.php` with the origin
+only (for example, `https://example.com`). Continue to use `app.base_path` for a
+subfolder. For staging, set `app.indexable` to `false` and use the staging origin.
+Production should use `app.indexable => true` (the default).
+
+`/robots.txt` advertises `/sitemap.xml`, a dynamic sitemap index containing subjects,
+subject sections, published notes, past papers, and paginated paper listings.
+Draft notes and internal search URLs are excluded. Upload the updated root
+`.htaccess` to enable these endpoints on Apache; `/robots.php` and `/sitemap.php`
+also work directly. Submit the production sitemap to Google Search Console after
+deployment. No verification token is bundled with the application.
+
+Run `php tests/seo.php` for the database-free SEO checks.
+
 ## Security checks
 
 Run from the repository root:
