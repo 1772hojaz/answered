@@ -23,8 +23,16 @@ if (!empty($paper['paper_number'])) {
     $meta[] = 'Paper ' . $paper['paper_number'];
 }
 
-$GLOBALS['page_title'] = (string) $paper['title'];
-$GLOBALS['page_description'] = 'Past paper: ' . $paper['title'] . ($paper['subject_name'] ? ' — ' . $paper['subject_name'] : '');
+$paperLabel = $paper['title'] . (stripos((string) $paper['title'], 'ZIMSEC') === false ? ' - ZIMSEC ' . $paper['subject_name'] : '');
+$GLOBALS['page_title'] = $paperLabel;
+$GLOBALS['page_description'] = 'ZIMSEC ' . $paper['subject_name'] . ' past paper: ' . $paper['title']
+    . ($meta ? ' (' . implode(', ', $meta) . ')' : '') . '. '
+    . ($paper['description'] ?: 'Open the PDF and practise questions as part of your exam revision.');
+$GLOBALS['canonical_url'] = url('/past-papers/' . $paper['slug']);
+$GLOBALS['seo_title_override'] = $paper['seo_title'] ?? '';
+$GLOBALS['seo_description_override'] = $paper['seo_description'] ?? '';
+$GLOBALS['seo_resource'] = ['@type' => ['DigitalDocument', 'LearningResource'], 'name' => $paper['title'],
+    'about' => $paper['subject_name'], 'learningResourceType' => 'Past paper', 'educationalUse' => 'practice'];
 $GLOBALS['nav_active'] = 'papers';
 $GLOBALS['subject_slug_active'] = (string) $paper['subject_slug'];
 ?>
@@ -43,6 +51,8 @@ $GLOBALS['subject_slug_active'] = (string) $paper['subject_slug'];
       <article class="gfg-article">
         <header class="paper-header">
           <p class="note-eyebrow">
+            <?php foreach (['level','syllabus_code','exam_session'] as $field): if (!empty($paper[$field])): ?><span class="chip chip-soft"><?= e($paper[$field]) ?></span><?php endif; endforeach; ?>
+            <span class="chip chip-soft">ZIMSEC exam practice</span>
             <a class="chip" href="<?= e(url('/subjects/' . $paper['subject_slug'])) ?>"><?= e($paper['subject_name']) ?></a>
             <?php if ($meta): ?>
               <span class="chip chip-soft"><?= e(implode(' · ', $meta)) ?></span>
