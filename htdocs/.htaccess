@@ -42,6 +42,8 @@ RewriteRule ^ - [L]
 # ----- Clean URLs ----------------------------------------------------
 <IfModule mod_rewrite.c>
   RewriteBase /
+  RewriteRule ^sitemap\.xml$ sitemap.php [L]
+  RewriteRule ^robots\.txt$ robots.php [L]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteCond %{REQUEST_URI} !/manage-8f3ffdb330600372/

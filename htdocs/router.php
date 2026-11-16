@@ -50,6 +50,12 @@ if (strpos($path, '/.well-known/') === 0) {
     exit;
 }
 
+// Match the public crawler endpoints used by Apache.
+if ($path === '/sitemap.xml' || $path === '/robots.txt') {
+    require __DIR__ . ($path === '/sitemap.xml' ? '/sitemap.php' : '/robots.php');
+    exit;
+}
+
 // Clean URLs: fall through to index.php if no real file/dir matches.
 if ($file !== false && $path !== '/' && is_file($file)) {
     return false;
