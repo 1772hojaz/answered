@@ -18,6 +18,7 @@ if (!defined('APP_BOOTSTRAPPED')) {
  */
 function breadcrumbs(array $links): void
 {
+    $GLOBALS['seo_breadcrumbs'] = $links;
     echo '<nav class="breadcrumbs" aria-label="Breadcrumb"><ol>';
     $count = count($links);
     foreach ($links as $i => $link) {
@@ -84,7 +85,7 @@ function render_subject_grid(array $subjects): void
                 . '</span>';
         }
         echo '</span>';
-        echo '<span class="gfg-card-go" aria-hidden="true">Read &rsaquo;</span>';
+        echo '<span class="gfg-card-go" aria-hidden="true">Explore subject &rarr;</span>';
         echo '</a>';
     }
     echo '</div>';
@@ -105,6 +106,7 @@ function render_note_list(array $notes, bool $withExcerpt = false): void
     echo '<ul class="gfg-list">';
     foreach ($notes as $note) {
         echo '<li class="gfg-item">';
+        echo '<span class="gfg-item-icon note-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 12h7M9 16h5"/></svg></span>';
         echo '<div class="gfg-item-body">';
         echo '<a class="gfg-item-title" href="' . e(url('/notes/' . $note['slug'])) . '">' . e($note['title']) . '</a>';
         echo '<div class="gfg-item-meta">';
