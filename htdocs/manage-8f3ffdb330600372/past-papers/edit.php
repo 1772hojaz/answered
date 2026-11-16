@@ -13,6 +13,9 @@ if ($id > 0 && $paper === null) {
     admin_redirect('past-papers/index.php');
 }
 
+if ($paper && !empty($paper['deleted_at'])) { flash_set('error','This paper is in the trash. Restore it first.'); admin_redirect('trash.php?type=papers'); }
+$metadata = $paper ?? [];
+$examSession = (string)($paper['exam_session'] ?? '');
 $subjects = subjects_list();
 if (!$subjects) {
     flash_set('error', 'Create a subject before adding past papers.');
@@ -22,13 +25,16 @@ if (!$subjects) {
 $title = (string) ($paper['title'] ?? '');
 $subjectId = (int) ($paper['subject_id'] ?? $subjects[0]['id']);
 $year = (int) ($paper['year'] ?? 0);
-$examBoard = (string) ($paper['exam_board'] ?? '');
+$examBoard = (string) ($paper['exam_board'] ?? 'ZIMSEC');
 $paperNumber = (string) ($paper['paper_number'] ?? '');
 $description = (string) ($paper['description'] ?? '');
 $pdfUrl = (string) ($paper['file_path'] ?? '');
 $error = '';
 
 if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
+    try { $metadata = resource_metadata($_POST); } catch (InvalidArgumentException $invalid) { $error = $invalid->getMessage(); }
+    $examSession = trim((string)($_POST['exam_session'] ?? ''));
+    if (mb_strlen($examSession,'UTF-8')>50) { $error='The exam session is too long.'; }
     $title = trim((string) ($_POST['title'] ?? ''));
     $subjectId = (int) ($_POST['subject_id'] ?? 0);
     $year = (int) ($_POST['year'] ?? 0);
@@ -45,6 +51,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         $error = 'Please choose a subject.';
     } elseif ($year !== 0 && ($year < 1900 || $year > 2100)) {
         $error = 'Please enter a valid year (or leave it empty).';
+    } elseif (mb_strlen($examBoard,'UTF-8') > 100 || mb_strlen($paperNumber,'UTF-8') > 50 || mb_strlen($description,'UTF-8') > 2000) {
+        $error = 'The examination board, paper number, or description is too long.';
     }
 
     $link = $pdfUrl !== '' ? validate_paper_url($pdfUrl) : ['ok' => false];
@@ -56,6 +64,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     }
 
     if ($error === '') {
+        db()->beginTransaction();
+        try {
         if ($paper === null) {
             $slug = unique_slug('past_papers', 'slug', slugify($title));
             q(
@@ -72,12 +82,10 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                     (string) $link['url'],
                 ]
             );
+            $id = (int) db()->lastInsertId();
             flash_set('success', 'Past paper added.');
         } else {
             $filePath = $link['ok'] ? (string) $link['url'] : (string) $paper['file_path'];
-            if ($paper['file_path'] !== $filePath) {
-                delete_paper_file($paper['file_path'] ?? null);
-            }
             q(
                 'UPDATE past_papers SET subject_id = ?, title = ?, year = ?, exam_board = ?, paper_number = ?, description = ?, file_path = ?, file_size = 0, updated_at = NOW() WHERE id = ?',
                 [
@@ -94,7 +102,11 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             flash_set('success', 'Past paper updated.');
         }
 
+        q('UPDATE past_papers SET level=?,syllabus_code=?,exam_session=?,seo_title=?,seo_description=? WHERE id=?',[$metadata['level'],$metadata['syllabus_code'],$examSession,$metadata['seo_title'],$metadata['seo_description'],$id]);
+        workspace_audit($paper ? 'update_paper' : 'create_paper','past_papers',$id,$title);
+        db()->commit();
         admin_redirect('past-papers/index.php');
+        } catch (Throwable $failure) { db()->rollBack(); error_log($failure->getMessage()); $error='Could not save this paper. Please try again.'; }
     }
 }
 
@@ -135,7 +147,7 @@ admin_header($paper ? 'Edit Past Paper' : 'Add Past Paper', 'papers');
 
     <label class="field">
       <span>Examination board</span>
-      <input type="text" name="exam_board" value="<?= e($examBoard) ?>" maxlength="100" placeholder="e.g. Cambridge, Edexcel">
+      <input type="text" name="exam_board" value="<?= e($examBoard) ?>" maxlength="100" placeholder="e.g. ZIMSEC">
     </label>
 
     <label class="field">
@@ -143,6 +155,9 @@ admin_header($paper ? 'Edit Past Paper' : 'Add Past Paper', 'papers');
       <input type="text" name="paper_number" value="<?= e($paperNumber) ?>" maxlength="50" placeholder="e.g. Paper 2">
     </label>
   </div>
+
+  <?php resource_metadata_fields($metadata); ?>
+  <label class="field"><span>Exam session</span><input type="text" name="exam_session" maxlength="50" value="<?= e($examSession) ?>" placeholder="e.g. June or November"></label>
 
   <label class="field">
     <span>Description</span>
