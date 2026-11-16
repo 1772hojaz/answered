@@ -5,7 +5,9 @@
 
 http_response_code(404);
 
-$GLOBALS['page_title'] = 'Page not found';
+$GLOBALS['page_title'] = 'ZIMSEC Resource Not Found';
+$GLOBALS['page_description'] = 'This ZIMSEC study resource could not be found. Browse subjects or return to Answered for revision notes and past papers.';
+$GLOBALS['page_noindex'] = true;
 $GLOBALS['nav_active'] = '';
 ?>
 <div class="container section not-found">
