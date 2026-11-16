@@ -65,39 +65,47 @@ function admin_login_page(string $error, string $username, string $redirect): vo
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Admin Login · <?= e($appName) ?></title>
-<link rel="stylesheet" href="<?= e(asset('assets/css/app.css')) ?>">
-<link rel="stylesheet" href="<?= e(asset('assets/css/admin.css')) ?>">
+<link rel="stylesheet" href="<?= e(asset('assets/css/app.css')) ?>?v=20261116">
+<link rel="stylesheet" href="<?= e(asset('assets/css/admin.css')) ?>?v=20261117">
 </head>
 <body class="admin-login-body">
+  <aside class="login-intro" aria-label="Welcome">
+    <a class="gfg-logo" href="<?= e(url('/')) ?>"><span class="gfg-logo-mark" aria-hidden="true"><?= e(mb_strtoupper(mb_substr($appName, 0, 1, 'UTF-8'), 'UTF-8')) ?></span><span class="gfg-logo-text"><?= e($appName) ?></span></a>
+    <div><span class="eyebrow">BEHIND EVERY GOOD NOTE</span><h1>A little care.<br>A world of<br><em>understanding.</em></h1><p>Your space to create resources that make learning a little clearer.</p></div>
+    <span class="login-intro-foot">Made for curious minds.</span>
+  </aside>
   <main class="admin-login-card">
     <div class="admin-login-brand">
-      <span class="brand-mark" aria-hidden="true">R</span>
-      <span><?= e($appName) ?> Admin</span>
+      <span class="brand-mark" aria-hidden="true"><?= e(mb_strtoupper(mb_substr($appName, 0, 1, 'UTF-8'), 'UTF-8')) ?></span>
+      <span>Admin workspace</span>
     </div>
+    <h2>Welcome back.</h2>
+    <p class="login-description">Sign in to manage your study library.</p>
 
     <?php if ($error !== ''): ?>
-      <div class="flash flash-error"><?= e($error) ?></div>
+      <div class="flash flash-error" role="alert"><?= e($error) ?></div>
     <?php endif; ?>
 
-    <form method="post" action="<?= e(admin_url('login.php')) ?>" autocomplete="off">
+    <form method="post" action="<?= e(admin_url('login.php')) ?>">
       <?= csrf_field() ?>
       <input type="hidden" name="redirect" value="<?= e($redirect) ?>">
 
       <label class="field">
         <span>Username</span>
-        <input type="text" name="username" value="<?= e($username) ?>" required autofocus maxlength="60">
+        <input type="text" name="username" value="<?= e($username) ?>" required autocomplete="username" maxlength="60" placeholder="Your username">
       </label>
 
-      <label class="field">
-        <span>Password</span>
-        <input type="password" name="password" required maxlength="255">
-      </label>
+      <div class="field">
+        <label for="admin-password">Password</label>
+        <span class="password-control"><input id="admin-password" type="password" name="password" required autocomplete="current-password" maxlength="255" placeholder="Your password"><button type="button" data-password-toggle aria-controls="admin-password" aria-pressed="false">Show</button></span>
+      </div>
 
       <button type="submit" class="btn btn-primary btn-block">Sign in</button>
     </form>
 
     <p class="admin-login-foot"><a href="<?= e(url('/')) ?>">&larr; Back to the site</a></p>
   </main>
+<script src="<?= e(asset('assets/js/admin.js')) ?>?v=20261117"></script>
 </body>
 </html><?php
 }
