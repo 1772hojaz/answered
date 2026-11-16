@@ -5,6 +5,7 @@ declare(strict_types=1);
 $source = dirname(__DIR__) . '/htdocs';
 $fixture = sys_get_temp_dir() . '/revisionhub-security-' . bin2hex(random_bytes(8));
 mkdir($fixture, 0700);
+$fixture = realpath($fixture); // Match APP_ROOT's canonical separators on Windows.
 function copy_tree(string $from, string $to): void
 {
     foreach (new DirectoryIterator($from) as $entry) {
