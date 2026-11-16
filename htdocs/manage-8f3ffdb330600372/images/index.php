@@ -15,6 +15,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             (string) ($_POST['name'] ?? '')
         );
         if ($result['ok']) {
+            workspace_audit('save_image','images',null,'Saved external image link');
             flash_set('success', !empty($result['exists']) ? 'That image link is already saved.' : 'Image link saved.');
         } else {
             flash_set('error', (string) $result['error']);
@@ -23,6 +24,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         $id = (int) ($_POST['id'] ?? 0);
         $result = delete_image($id);
         if ($result['ok']) {
+            workspace_audit('delete','images',$id,'Deleted unused image link');
             flash_set('success', 'Image deleted.');
         } else {
             flash_set('error', (string) ($result['error'] ?? 'Could not delete the image.'));
@@ -32,7 +34,10 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     admin_redirect('images/index.php');
 }
 
-$images = q_all('SELECT * FROM images ORDER BY created_at DESC LIMIT 300');
+$term=trim((string)($_GET['q'] ?? '')); $like='%'.$term.'%';
+$total=(int)q_one('SELECT COUNT(*) FROM images WHERE original_name LIKE ? OR path LIKE ?',[$like,$like]);
+$page=min(max(1,(int)($_GET['page'] ?? 1)),max(1,(int)ceil($total/25)));
+$images=q_all('SELECT * FROM images WHERE original_name LIKE ? OR path LIKE ? ORDER BY created_at DESC,id DESC LIMIT 25 OFFSET '.(($page-1)*25),[$like,$like]);
 
 foreach ($images as $i => $image) {
     $like = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\%', '\_'], (string) $image['path']) . '%';
@@ -45,6 +50,7 @@ $GLOBALS['admin_actions'] = '';
 admin_header('Images', 'images');
 ?>
 
+<form class="filter-bar" method="get"><label class="field field-inline"><span>Search images</span><input type="search" name="q" value="<?= e($term) ?>" placeholder="Name or link"></label><button class="btn">Search</button></form>
 <form class="form-card" method="post">
   <?= csrf_field() ?>
   <input type="hidden" name="action" value="add">
@@ -90,4 +96,4 @@ admin_header('Images', 'images');
   </div>
 <?php endif; ?>
 
-<?php admin_footer();
+<?php admin_pagination($total,$page); admin_footer();
