@@ -48,10 +48,12 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
             }
             q('INSERT INTO topics (subject_id, name, slug, sort_order, created_at) VALUES (?, ?, ?, ?, NOW())',
                 [$subjectId, $name, $slug, $sortOrder]);
+            workspace_audit('create','topics',(int)db()->lastInsertId(),$name);
             flash_set('success', 'Topic created.');
         } else {
             q('UPDATE topics SET subject_id = ?, name = ?, sort_order = ? WHERE id = ?',
                 [$subjectId, $name, $sortOrder, (int) $topic['id']]);
+            workspace_audit('update','topics',$id,$name);
             flash_set('success', 'Topic updated.');
         }
         admin_redirect('topics/index.php');

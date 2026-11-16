@@ -24,6 +24,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
                 ));
             } else {
                 q('DELETE FROM topics WHERE id = ?', [$id]);
+                workspace_audit('delete','topics',$id,'Deleted topics record #' . $id);
                 flash_set('success', 'Topic deleted.');
             }
         }
