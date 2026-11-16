@@ -22,6 +22,11 @@ return [
         // Platform name shown in the header and page titles.
         'name' => 'RevisionHub',
 
+        // Canonical origin only (scheme and host); use base_path below for subfolders.
+        'site_url' => 'https://answered.qzz.io',
+        // Set false for staging and local previews to prevent search indexing.
+        'indexable' => true,
+
         // URL path where the application is installed.
         // '' when installed at the domain root, '/revision' inside a subfolder.
         'base_path' => '',
