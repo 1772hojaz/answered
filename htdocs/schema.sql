@@ -16,6 +16,8 @@ CREATE TABLE IF NOT EXISTS users (
   email         VARCHAR(190) NULL,
   password_hash VARCHAR(255) NOT NULL,
   role          VARCHAR(20)  NOT NULL DEFAULT 'admin',
+  active        TINYINT(1) NOT NULL DEFAULT 1,
+  auth_version  INT UNSIGNED NOT NULL DEFAULT 1,
   created_at    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY uq_users_username (username),
@@ -64,11 +66,18 @@ CREATE TABLE IF NOT EXISTS notes (
   created_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   published_at DATETIME     NULL,
+  deleted_at   DATETIME NULL,
+  version      INT UNSIGNED NOT NULL DEFAULT 1,
+  level VARCHAR(20) NOT NULL DEFAULT '',
+  syllabus_code VARCHAR(30) NOT NULL DEFAULT '',
+  seo_title VARCHAR(160) NOT NULL DEFAULT '',
+  seo_description VARCHAR(255) NOT NULL DEFAULT '',
   PRIMARY KEY (id),
   UNIQUE KEY uq_notes_slug (slug),
   KEY idx_notes_subject (subject_id),
   KEY idx_notes_topic (topic_id),
   KEY idx_notes_status (status),
+  KEY idx_notes_deleted (deleted_at),
   CONSTRAINT fk_notes_subject FOREIGN KEY (subject_id)
     REFERENCES subjects (id) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT fk_notes_topic FOREIGN KEY (topic_id)
@@ -89,12 +98,19 @@ CREATE TABLE IF NOT EXISTS past_papers (
   description  TEXT         NULL,
   file_path    VARCHAR(2000) NOT NULL, -- external https:// link to the PDF
   file_size    INT UNSIGNED NOT NULL DEFAULT 0,
+  deleted_at DATETIME NULL,
+  level VARCHAR(20) NOT NULL DEFAULT '',
+  syllabus_code VARCHAR(30) NOT NULL DEFAULT '',
+  exam_session VARCHAR(50) NOT NULL DEFAULT '',
+  seo_title VARCHAR(160) NOT NULL DEFAULT '',
+  seo_description VARCHAR(255) NOT NULL DEFAULT '',
   created_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY uq_papers_slug (slug),
   KEY idx_papers_subject (subject_id),
   KEY idx_papers_year (year),
+  KEY idx_papers_deleted (deleted_at),
   CONSTRAINT fk_papers_subject FOREIGN KEY (subject_id)
     REFERENCES subjects (id) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -117,3 +133,37 @@ CREATE TABLE IF NOT EXISTS images (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+CREATE TABLE IF NOT EXISTS note_revisions (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  note_id INT UNSIGNED NOT NULL,
+  user_id INT UNSIGNED NULL,
+  snapshot MEDIUMTEXT NOT NULL,
+  reason VARCHAR(40) NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_revision_note (note_id, id),
+  FOREIGN KEY (note_id) REFERENCES notes(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS note_autosaves (
+  user_id INT UNSIGNED NOT NULL,
+  draft_key VARCHAR(64) NOT NULL,
+  note_id INT UNSIGNED NULL,
+  payload MEDIUMTEXT NOT NULL,
+  saved_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (user_id, draft_key),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (note_id) REFERENCES notes(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+CREATE TABLE IF NOT EXISTS admin_activity (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  user_id INT UNSIGNED NULL,
+  actor_name VARCHAR(60) NOT NULL,
+  action VARCHAR(60) NOT NULL,
+  entity_type VARCHAR(30) NOT NULL,
+  entity_id INT UNSIGNED NULL,
+  summary VARCHAR(255) NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  KEY idx_activity_created (created_at),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
