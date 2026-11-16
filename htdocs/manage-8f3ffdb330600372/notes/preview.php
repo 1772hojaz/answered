@@ -13,6 +13,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
 if ($note === null) {
     admin_redirect('notes/index.php');
 }
+if (!can_edit_note($note)) { staff_forbidden(); }
 
 header('Content-Type: text/html; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
