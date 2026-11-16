@@ -6,8 +6,16 @@
 $page = max(1, (int) ($_GET['page'] ?? 1));
 list($papers, $total) = all_papers_paginated($page, 20);
 $pages = max(1, (int) ceil($total / 20));
+if ($page > $pages) {
+    require __DIR__ . '/404.php';
+    return;
+}
 
-$GLOBALS['page_title'] = 'Past Papers';
+$pageSuffix = $page > 1 ? ' - Page ' . $page : '';
+$GLOBALS['page_title'] = 'ZIMSEC Past Papers by Subject' . $pageSuffix;
+$GLOBALS['page_description'] = 'Browse ZIMSEC past papers by subject on Answered. Open available PDFs and practise exam questions as part of your revision.' . ($page > 1 ? ' Page ' . $page . '.' : '');
+$GLOBALS['canonical_url'] = url('/past-papers', $page > 1 ? ['page' => $page] : []);
+$GLOBALS['seo_page_type'] = 'CollectionPage';
 $GLOBALS['nav_active'] = 'papers';
 ?>
 <div class="gfg-layout">
@@ -18,8 +26,9 @@ $GLOBALS['nav_active'] = 'papers';
       <?php breadcrumbs([['label' => 'Home', 'href' => url('/')], ['label' => 'Past Papers']]); ?>
 
       <header class="gfg-page-head">
-        <h1>Past Papers</h1>
-        <p class="section-sub"><?= $total ?> paper<?= $total === 1 ? '' : 's' ?> available</p>
+        <span class="eyebrow section-eyebrow">PUT LEARNING INTO PRACTICE</span>
+        <h1>ZIMSEC Past Papers</h1>
+        <p class="section-sub"><?= $total ?> paper<?= $total === 1 ? '' : 's' ?> to help you practise, spot patterns, and prepare for exam day.</p>
       </header>
 
       <?php render_paper_list($papers); ?>
