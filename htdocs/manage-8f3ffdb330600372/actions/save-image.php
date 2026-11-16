@@ -35,4 +35,5 @@ if (!$result['ok']) {
     respond(['ok' => false, 'error' => (string) ($result['error'] ?? 'Could not save the image link.')]);
 }
 
+workspace_audit('save_image','images',null,'Saved an external image link from the note editor');
 respond(['ok' => true, 'url' => (string) $result['url']]);
