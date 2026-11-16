@@ -14,11 +14,19 @@ if (!defined('APP_BOOTSTRAPPED')) {
     exit;
 }
 
+require_once __DIR__ . '/seo.php';
+
 function render_layout(string $body): void
 {
     $appName = (string) config('app.name', 'RevisionHub');
-    $title = $GLOBALS['page_title'] ?? $appName;
-    $description = $GLOBALS['page_description'] ?? 'Free revision notes and past papers organised by subject.';
+    $title = !empty($GLOBALS['seo_title_override']) ? $GLOBALS['seo_title_override'] : ($GLOBALS['page_title'] ?? $appName);
+    if (stripos($title, 'ZIMSEC') === false) { $title .= ' - ZIMSEC'; }
+    $descriptionSource = !empty($GLOBALS['seo_description_override']) ? $GLOBALS['seo_description_override'] : ($GLOBALS['page_description'] ?? 'Explore ZIMSEC revision notes and past papers by subject. Study key topics and practise exam questions with Answered.');
+    if (stripos($descriptionSource, 'ZIMSEC') === false) { $descriptionSource = 'ZIMSEC revision: ' . $descriptionSource; }
+    $description = seo_description($descriptionSource);
+    $fullTitle = $title . ($title === $appName ? '' : ' | ' . $appName);
+    $canonical = seo_absolute_url($GLOBALS['canonical_url'] ?? url('/' . current_path()));
+    $robots = seo_robots();
     $active = $GLOBALS['nav_active'] ?? '';
     $bodyClass = (string) ($GLOBALS['body_class'] ?? '');
     $flashes = flash_take();
@@ -41,17 +49,34 @@ function render_layout(string $body): void
     header('X-Content-Type-Options: nosniff');
     header('X-Frame-Options: SAMEORIGIN');
     header('Referrer-Policy: strict-origin-when-cross-origin');
+    header('X-Robots-Tag: ' . $robots);
     ?><!DOCTYPE html>
-<html lang="en">
+<html lang="en-ZW">
 <head>
 <meta charset="utf-8">
 <?php if ($hasSideAds): ?>
 <script id="aclib" type="text/javascript" src="https://acscdn.com/script/aclib.js"></script>
 <?php endif; ?>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title><?= e($title) ?><?= $title === $appName ? '' : ' · ' . e($appName) ?></title>
+<title><?= e($fullTitle) ?></title>
 <meta name="description" content="<?= e($description) ?>">
-<link rel="stylesheet" href="<?= e(asset('assets/css/app.css')) ?>">
+<meta name="robots" content="<?= e($robots) ?>">
+<?php if (http_response_code() < 400): ?>
+<link rel="canonical" href="<?= e($canonical) ?>">
+<meta property="og:locale" content="en_ZW">
+<meta property="og:type" content="<?= in_array('Article', (array) ($GLOBALS['seo_resource']['@type'] ?? []), true) ? 'article' : 'website' ?>">
+<meta property="og:site_name" content="<?= e($appName) ?>">
+<meta property="og:title" content="<?= e($fullTitle) ?>">
+<meta property="og:description" content="<?= e($description) ?>">
+<meta property="og:url" content="<?= e($canonical) ?>">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="<?= e($fullTitle) ?>">
+<meta name="twitter:description" content="<?= e($description) ?>">
+<?php if (strpos($robots, 'noindex') === false): ?>
+<script type="application/ld+json"><?= seo_json(seo_structured_data($fullTitle, $description, $canonical)) ?></script>
+<?php endif; ?>
+<?php endif; ?>
+<link rel="stylesheet" href="<?= e(asset('assets/css/app.css')) ?>?v=20261116">
 </head>
 <body class="gfg<?= $bodyClass !== '' ? ' ' . e($bodyClass) : '' ?>">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -79,9 +104,9 @@ function render_layout(string $body): void
       </form>
 
       <nav id="gfg-primary" class="gfg-actions" aria-label="Primary" data-site-nav>
-        <a href="<?= e(url('/')) ?>" class="<?= $isHome ? 'is-active' : '' ?>">Home</a>
-        <a href="<?= e(url('/subjects')) ?>" class="<?= $isSubjects ? 'is-active' : '' ?>">Subjects</a>
-        <a href="<?= e(url('/past-papers')) ?>" class="<?= $isPapers ? 'is-active' : '' ?>">Past Papers</a>
+        <a href="<?= e(url('/')) ?>" class="<?= $isHome ? 'is-active' : '' ?>"<?= $isHome ? ' aria-current="page"' : '' ?>>Home</a>
+        <a href="<?= e(url('/subjects')) ?>" class="<?= $isSubjects ? 'is-active' : '' ?>"<?= $isSubjects ? ' aria-current="page"' : '' ?>>Subjects</a>
+        <a href="<?= e(url('/past-papers')) ?>" class="<?= $isPapers ? 'is-active' : '' ?>"<?= $isPapers ? ' aria-current="page"' : '' ?>>Past Papers</a>
       </nav>
     </div>
   </div>
@@ -116,7 +141,7 @@ function render_layout(string $body): void
         <span class="gfg-logo-mark" aria-hidden="true"><?= e(mb_strtoupper(mb_substr($appName, 0, 1, 'UTF-8'), 'UTF-8')) ?></span>
         <span class="gfg-logo-text"><?= e($appName) ?></span>
       </a>
-      <p>Clear revision notes and past papers, organised by subject and ready on any device.</p>
+      <p>ZIMSEC revision notes and past papers, organised by subject and ready on any device. An independent study platform for students in Zimbabwe.</p>
     </div>
     <div class="gfg-footer-col">
       <h4>Explore</h4>
@@ -146,7 +171,7 @@ function render_layout(string $body): void
     </div>
   </div>
 </footer>
-<script src="<?= e(asset('assets/js/app.js')) ?>"></script>
+<script src="<?= e(asset('assets/js/app.js')) ?>?v=20261116"></script>
 <?php if ($hasSideAds): ?>
 <script src="<?= e(asset('assets/js/side-ads.js')) ?>"></script>
 <?php endif; ?>
