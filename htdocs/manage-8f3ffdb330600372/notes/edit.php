@@ -18,6 +18,12 @@ if ($id > 0 && $note === null) {
     admin_redirect('notes/index.php');
 }
 
+if ($note && !can_edit_note($note)) { staff_forbidden('This note is not editable by your account.'); }
+$draftKey = $id > 0 ? 'note-' . $id : (string) ($_POST['draft_key'] ?? $_GET['draft'] ?? '');
+if (!preg_match('/^(?:note-[0-9]+|[a-f0-9]{32})$/D', $draftKey)) { $draftKey = bin2hex(random_bytes(16)); }
+if ($id === 0 && ($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'GET' && !isset($_GET['draft'])) { admin_redirect('notes/edit.php?draft=' . $draftKey); }
+$baseVersion = (int) ($_POST['version'] ?? $note['version'] ?? 1);
+$metadata = array_merge(['level'=>'','syllabus_code'=>'','seo_title'=>'','seo_description'=>''], $note ?? []);
 $subjects = subjects_list();
 if (!$subjects) {
     flash_set('error', 'Create a subject before writing notes.');
@@ -94,9 +100,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && !isset($_POST['preview']
     $action = (string) ($_POST['form_action'] ?? '');
 
     if ($action === 'delete') {
-        q('UPDATE images SET note_id = NULL WHERE note_id = ?', [$id]);
-        q('DELETE FROM notes WHERE id = ?', [$id]);
-        flash_set('success', 'Note deleted.');
+        trash_resource('notes', $id);
+        flash_set('success', 'Note moved to trash.');
         admin_redirect('notes/index.php');
     }
 
@@ -105,6 +110,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && !isset($_POST['preview']
     $topicId = (int) ($_POST['topic_id'] ?? 0);
     $content = (string) ($_POST['content'] ?? '');
     $publish = isset($_POST['publish']);
+    if ($publish) { require_full_admin(); }
+    try { $metadata = resource_metadata($_POST); } catch (InvalidArgumentException $invalid) { $error = $invalid->getMessage(); }
     $status = $publish ? 'published' : 'draft';
 
     if ($title === '') {
@@ -126,49 +133,34 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST' && !isset($_POST['preview']
 
     if ($error === '') {
         $safeContent = sanitize_note_html($content);
-
-        if ($note === null) {
-            $slug = unique_slug('notes', 'slug', slugify($title));
-            q(
-                'INSERT INTO notes (subject_id, topic_id, author_id, title, slug, content, status, created_at, updated_at, published_at)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), ' . ($publish ? 'NOW()' : 'NULL') . ')',
-                [
-                    $subjectId,
-                    $topicId > 0 ? $topicId : null,
-                    (int) (current_admin()['id'] ?? 0),
-                    $title,
-                    $slug,
-                    $safeContent,
-                    $publish ? 'published' : 'draft',
-                ]
-            );
-            $id = (int) db()->lastInsertId();
-            flash_set('success', $publish ? 'Note published.' : 'Draft saved.');
-        } else {
-            $newStatus = $publish ? 'published' : 'draft';
-            $publishedAt = $note['published_at'];
-            if ($publish && !$publishedAt) {
-                $publishedAt = date('Y-m-d H:i:s');
+        db()->beginTransaction();
+        try {
+            $locked = $id > 0 ? q_row('SELECT * FROM notes WHERE id = ? FOR UPDATE', [$id]) : null;
+            if ($id > 0 && (!$locked || !can_edit_note($locked) || (int) $locked['version'] !== $baseVersion)) {
+                throw new RuntimeException('This note changed since you opened it. Your edits are preserved in this form and autosave. Reload the note before applying them again.');
             }
-            if (!$publish) {
-                $publishedAt = null;
+            if ($locked) { note_snapshot($locked, 'Before edit'); }
+            $values = [$subjectId, $topicId > 0 ? $topicId : null, $title, $safeContent, $status,
+                $publish ? ($locked['published_at'] ?? date('Y-m-d H:i:s')) : null,
+                $metadata['level'], $metadata['syllabus_code'], $metadata['seo_title'], $metadata['seo_description']];
+            if ($locked) {
+                q('UPDATE notes SET subject_id=?, topic_id=?, title=?, content=?, status=?, published_at=?, level=?, syllabus_code=?, seo_title=?, seo_description=?, version=version+1, updated_at=NOW() WHERE id=?', array_merge($values,[$id]));
+            } else {
+                $slug = unique_slug('notes', 'slug', slugify($title));
+                q('INSERT INTO notes (subject_id,topic_id,title,content,status,published_at,level,syllabus_code,seo_title,seo_description,author_id,slug) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', array_merge($values,[current_admin()['id'],$slug]));
+                $id = (int) db()->lastInsertId();
             }
-            q(
-                'UPDATE notes SET subject_id = ?, topic_id = ?, title = ?, content = ?, status = ?, published_at = ?, updated_at = NOW() WHERE id = ?',
-                [
-                    $subjectId,
-                    $topicId > 0 ? $topicId : null,
-                    $title,
-                    $safeContent,
-                    $newStatus,
-                    $publishedAt,
-                    (int) $note['id'],
-                ]
-            );
+            note_snapshot(q_row('SELECT * FROM notes WHERE id=?',[$id]), $publish ? 'Published' : 'Saved draft');
+            q('DELETE FROM note_autosaves WHERE user_id=? AND draft_key=?',[current_admin()['id'],$draftKey]);
+            workspace_audit($publish ? 'publish' : 'save_draft','notes',$id,$title);
+            db()->commit();
             flash_set('success', $publish ? 'Note published.' : 'Draft saved.');
+            admin_redirect('notes/edit.php?id=' . $id);
+        } catch (PDOException $failure) {
+            db()->rollBack(); error_log($failure->getMessage()); $error = 'The note could not be saved. Your edits are still in this form. Try again.';
+        } catch (RuntimeException $conflict) {
+            db()->rollBack(); $error = $conflict->getMessage();
         }
-
-        admin_redirect('notes/edit.php?id=' . $id);
     }
 }
 
@@ -193,7 +185,12 @@ admin_header($note ? 'Edit Note' : 'Create Note', 'notes');
   <div class="flash flash-error"><?= e($error) ?></div>
 <?php endif; ?>
 
-<form class="form-card note-form" method="post" id="note-form">
+<?php $recovery = q_row('SELECT saved_at FROM note_autosaves WHERE user_id=? AND draft_key=?',[current_admin()['id'],$draftKey]); ?>
+<?php if ($recovery): ?><div class="flash flash-info" data-recovery-banner>A recovered draft is available from <?= e($recovery['saved_at']) ?>. <button type="button" class="btn btn-sm" data-recover-note>Load recovered draft</button><button type="button" class="btn btn-sm" data-discard-recovery>Discard recovery</button></div><?php endif; ?>
+<form class="form-card note-form" method="post" id="note-form" data-autosave-url="<?= e(admin_url('actions/autosave.php')) ?>">
+  <input type="hidden" name="draft_key" value="<?= e($draftKey) ?>">
+  <input type="hidden" name="version" value="<?= $baseVersion ?>">
+  <p class="autosave-status" data-autosave-status role="status">Changes are saved to recovery automatically. Use Save draft or Publish to apply them.</p>
   <?= csrf_field() ?>
   <input type="hidden" name="id" value="<?= (int) $id ?>">
 
@@ -247,6 +244,8 @@ admin_header($note ? 'Edit Note' : 'Create Note', 'notes');
     </div>
   </div>
 
+  <?php resource_metadata_fields($metadata); ?>
+
   <div class="field editor-field">
     <span>Content *</span>
     <div class="editor" data-editor>
@@ -285,15 +284,16 @@ admin_header($note ? 'Edit Note' : 'Create Note', 'notes');
   </div>
 
   <div class="form-actions editor-actions">
-    <button type="submit" name="publish" value="1" class="btn btn-primary">Publish</button>
+    <?php if (full_admin()): ?><button type="submit" name="publish" value="1" class="btn btn-primary">Publish</button><?php endif; ?>
     <button type="submit" name="save_draft" value="1" class="btn">Save draft</button>
     <button type="submit" name="preview" value="1" class="btn" formtarget="_blank">Preview</button>
-    <?php if ($note): ?>
+    <?php if ($note && $note['status'] === 'published'): ?>
       <a class="btn" href="<?= e(url('/notes/' . $note['slug'])) ?>" target="_blank" rel="noopener">View live</a>
     <?php endif; ?>
-    <?php if ($note): ?>
+    <?php if ($note): ?><a class="btn" href="<?= e(admin_url('notes/history.php?id=' . $id)) ?>">Revision history</a><?php endif; ?>
+    <?php if ($note && full_admin()): ?>
       <button type="submit" name="form_action" value="delete" class="btn btn-danger btn-right"
-              data-confirm="Delete this note permanently? This cannot be undone.">Delete</button>
+              data-confirm="Move this note to trash? It will be hidden from students.">Move to trash</button>
     <?php endif; ?>
   </div>
 </form>
@@ -305,6 +305,7 @@ window.REVISIONHUB = {
   topics: <?= json_encode($topicsForSelect) ?>
 };
 </script>
-<script src="<?= e(asset('assets/js/editor.js')) ?>"></script>
+<script src="<?= e(asset('assets/js/editor.js')) ?>?v=20261117"></script>
+<script src="<?= e(asset('assets/js/autosave.js')) ?>?v=20261117"></script>
 
 <?php admin_footer();
