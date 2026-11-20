@@ -413,17 +413,27 @@ function paper_years(): array
     return q_all('SELECT DISTINCT year FROM past_papers WHERE deleted_at IS NULL AND year IS NOT NULL ORDER BY year DESC');
 }
 
-function all_papers_paginated(int $page, int $perPage = 20): array
+function all_papers_paginated(int $page, int $perPage = 20, array $filters = []): array
 {
-    $offset = max(0, ($page - 1) * $perPage);
-    $total = (int) q_one('SELECT COUNT(*) FROM past_papers WHERE deleted_at IS NULL');
+    $perPage = max(1, min(100, $perPage));
+    $offset = (max(1, min(1000000, $page)) - 1) * $perPage;
+    $where = 'p.deleted_at IS NULL';
+    $params = [];
+    foreach (['subject' => 'subject_id', 'year' => 'year', 'level' => 'level'] as $key => $column) {
+        if (isset($filters[$key]) && $filters[$key] !== '' && $filters[$key] !== 0) {
+            $where .= ' AND p.' . $column . ' = ?';
+            $params[] = $filters[$key];
+        }
+    }
+    $total = (int) q_one('SELECT COUNT(*) FROM past_papers p WHERE ' . $where, $params);
     $rows = q_all(
         'SELECT p.*, s.name AS subject_name, s.slug AS subject_slug
          FROM past_papers p
          JOIN subjects s ON s.id = p.subject_id
-         WHERE p.deleted_at IS NULL
-         ORDER BY p.year DESC, p.paper_number, p.title
-         LIMIT ' . $perPage . ' OFFSET ' . $offset
+         WHERE ' . $where . '
+         ORDER BY p.year DESC, p.paper_number, p.title, p.id
+         LIMIT ' . $perPage . ' OFFSET ' . $offset,
+        $params
     );
     return [$rows, $total];
 }
