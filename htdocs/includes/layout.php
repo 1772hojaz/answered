@@ -74,6 +74,7 @@ function render_layout(string $body): void
 <?php endif; ?>
 <?php endif; ?>
 <link rel="stylesheet" href="<?= e(asset('assets/css/app.css')) ?>?v=20261120-contents">
+<noscript><style>.gfg-nav-toggle { display: none; } .gfg-actions { display: flex; }</style></noscript>
 </head>
 <body class="gfg<?= $bodyClass !== '' ? ' ' . e($bodyClass) : '' ?>">
 <a class="skip-link" href="#main">Skip to content</a>
