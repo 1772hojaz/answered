@@ -408,6 +408,11 @@ function query_int(string $key, int $default = 1, int $minimum = 1): int
     return $value === false ? $default : (int) $value;
 }
 
+function paper_years(): array
+{
+    return q_all('SELECT DISTINCT year FROM past_papers WHERE deleted_at IS NULL AND year IS NOT NULL ORDER BY year DESC');
+}
+
 function all_papers_paginated(int $page, int $perPage = 20): array
 {
     $offset = max(0, ($page - 1) * $perPage);
