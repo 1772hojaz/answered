@@ -169,12 +169,25 @@ p { margin: 0 0 1em; }
 .gfg-content { min-width: 0; }
 .gfg-block { margin-bottom: 34px; }
 
-/* Side banners use the empty space below desktop sidebar widgets. */
-.gfg-side-ad { display: none; }
+/* Public ad placements reserve their real dimensions without scaling ads. */
+.ad-placement { min-width: 0; max-width: 100%; }
+.ad-placement[hidden] { display: none !important; }
+.ad-placement-label { display: block; margin-bottom: 8px; text-align: center; color: var(--muted); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+.ad-placement--leaderboard, .ad-placement--skyscraper, .ad-placement--mobile { display: none; }
+.ad-frame-slot { width: var(--ad-width); height: var(--ad-height); max-width: 100%; margin-inline: auto; }
+.ad-frame-slot iframe { display: block; border: 0; width: var(--ad-width); height: var(--ad-height); }
+.ad-placement--native { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); padding: 20px; overflow: hidden; }
+.ad-native-content { width: 100%; min-width: 0; min-height: 240px; }
+.ad-native-content > * { max-width: 100%; }
+.ad-band--native { margin-bottom: 40px; }
+@media screen and (min-width: 360px) and (max-width: 819px) {
+  .ad-placement--mobile { display: block; width: 320px; margin: 20px auto 0; }
+}
+@media screen and (min-width: 820px) {
+  .ad-placement--leaderboard { display: block; width: 728px; margin: 24px auto 0; }
+}
 @media screen and (min-width: 1280px) {
-  .gfg-side-ad { display: block; width: 160px; max-width: 100%; margin: 8px auto 0; }
-  .gfg-side-ad-label { display: block; margin-bottom: 6px; color: var(--muted); font-size: 11px; text-align: center; }
-  .gfg-side-ad-slot { width: 160px; height: 600px; max-width: 100%; overflow: hidden; }
+  .ad-placement--skyscraper { display: block; width: 160px; margin: 8px auto 0; }
 }
 
 /* left rail */
@@ -675,7 +688,7 @@ a, p, h1, h2, h3, td { overflow-wrap: anywhere; }
 .gfg-footer-bottom { background: transparent; }
 .gfg-footer-bottom-inner { font-size: 11px; padding-block: 20px; }
 
-/* Homepage: editorial introduction and a lightweight CSS study illustration. */
+/* Homepage introduction with a responsive native ad placement. */
 .home-intro { padding-top: 32px; }
 .study-hero { display: grid; grid-template-columns: 1.25fr 1fr; align-items: center; gap: 36px; padding: 52px 56px; background: #edf2e5; border: 1px solid #e0e7d6; border-radius: 22px; overflow: hidden; }
 .study-hero-copy { position: relative; z-index: 1; }
@@ -688,27 +701,8 @@ a, p, h1, h2, h3, td { overflow-wrap: anywhere; }
 .hero-shortcuts { display: flex; flex-wrap: wrap; gap: 10px 18px; margin-top: 17px; font-size: 11px; }
 .hero-shortcuts > span { color: var(--muted); }
 .hero-shortcuts a { font-weight: 600; }
-.study-art { height: 320px; position: relative; width: 100%; max-width: 440px; justify-self: center; }
-.art-orbit { position: absolute; width: 300px; height: 300px; border: 1px solid #cbd9bf; border-radius: 50%; left: 40px; top: 5px; }
-.orbit-two { width: 370px; height: 370px; left: 5px; top: -30px; border-style: dashed; opacity: .6; }
-.art-note { position: absolute; width: 218px; height: 228px; top: 8px; right: 9px; transform: rotate(9deg); padding: 24px; background: #fffef7; box-shadow: 0 15px 35px #3b513519; border: 1px solid #e0e3cc; border-radius: 7px; }
-.art-note-label { font-size: 7px; letter-spacing: .14em; color: #7f896c; }
-.art-note strong { display: block; font-family: Georgia, serif; font-size: 26px; font-weight: 400; line-height: 1.2; margin-top: 18px; }
-.art-rule { height: 1px; background: #dfe3d3; margin-top: 17px; }
-.art-rule.short { width: 65%; margin-top: 11px; }
-.art-note-check { position: absolute; bottom: 16px; right: 20px; width: 30px; height: 30px; border: 1px solid #b8c7a9; color: #66824d; border-radius: 50%; display: grid; place-items: center; }
-.art-book { position: absolute; border-radius: 5px 12px 12px 5px; border-left: 12px solid #0000000c; box-shadow: 5px 15px 25px #314d3626; }
-.book-back { width: 178px; height: 218px; background: #d2a773; top: 80px; left: 26px; transform: rotate(-18deg); }
-.book-back span { position: absolute; bottom: 23px; left: 14px; font-size: 9px; letter-spacing: .15em; color: #61472c; }
-.book-front { width: 180px; height: 219px; background: #31654c; top: 59px; left: 62px; transform: rotate(-7deg); padding: 22px 16px; color: #e2edcf; }
-.book-front > span { font-size: 6px; letter-spacing: .11em; display: block; }
-.book-front strong { display: block; font-family: Georgia, serif; font-size: 76px; line-height: 1.2; font-weight: 400; margin-top: 17px; }
-.book-front i { display: block; border: 1px solid #719173; width: 94px; height: 24px; border-radius: 50%; transform: rotate(-15deg); }
-.art-spark { position: absolute; color: #6f8b54; font-size: 37px; }
-.spark-one { left: 10px; top: 2px; }
-.spark-two { right: 0; bottom: 32px; font-size: 24px; }
-.art-caption { position: absolute; bottom: 1px; left: 100px; background: #fffdf8; border: 1px solid #dce4d4; box-shadow: var(--shadow); border-radius: 9px; padding: 11px 16px; font-size: 11px; font-weight: 600; white-space: nowrap; transform: rotate(3deg); }
-.art-caption span { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: #e8f0de; color: var(--brand); margin-right: 7px; }
+.hero-ad { min-width: 0; width: 100%; max-width: 440px; justify-self: center; }
+.hero-ad .ad-placement--native { padding: 18px; background: #fffef8; border-color: #d8e1cf; }
 .resource-strip { display: grid; grid-template-columns: repeat(3, 1fr) 1.25fr; align-items: center; padding: 24px 24px 0; gap: 20px; }
 .resource-strip > div { display: flex; gap: 11px; align-items: center; border-right: 1px solid var(--line); }
 .resource-strip > div strong { font-size: 25px; font-weight: 650; letter-spacing: -.04em; }
@@ -738,7 +732,6 @@ a, p, h1, h2, h3, td { overflow-wrap: anywhere; }
   .gfg-card { padding: 17px; grid-template-columns: minmax(0, 1fr); gap: 10px; }
   .gfg-card-go { grid-column: 1; }
   .study-hero { grid-template-columns: 1.4fr 1fr; padding: 32px; }
-  .study-art { transform: scale(.8); transform-origin: center; width: 340px; margin-inline: -40px; }
   .study-hero .eyebrow { font-size: 8px; }
   .resource-strip { padding-inline: 0; }
   .resource-strip > div { flex-direction: column; align-items: flex-start; gap: 0; }
@@ -768,7 +761,6 @@ a, p, h1, h2, h3, td { overflow-wrap: anywhere; }
   .study-hero { grid-template-columns: minmax(0, 1fr); padding: 28px; gap: 0; }
   .study-hero h1 { font-size: clamp(2.4rem, 8vw, 3.8rem); margin-top: 22px; }
   .study-hero-copy > p { font-size: 14px; margin-bottom: 22px; }
-  .study-art { height: 285px; transform: scale(.85); margin-top: 8px; margin-bottom: -20px; }
   .resource-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding-top: 20px; }
   .resource-strip > div:last-of-type { border: 0; }
   .resource-strip > div span { font-size: 10px; }
@@ -782,7 +774,6 @@ a, p, h1, h2, h3, td { overflow-wrap: anywhere; }
   .gfg-search-hero .btn { width: 100%; }
   .hero-shortcuts { gap: 8px 14px; }
   .hero-shortcuts > span { flex-basis: 100%; }
-  .study-art { transform: scale(.75); margin-top: -2px; margin-bottom: -38px; }
   .gfg-card-grid { grid-template-columns: minmax(0, 1fr); }
   .gfg-card { grid-template-columns: 44px minmax(0, 1fr); }
   .gfg-card-go { grid-column: 2; }
@@ -799,7 +790,7 @@ a, p, h1, h2, h3, td { overflow-wrap: anywhere; }
 
 @media print {
   .gfg-header, .gfg-footer, .breadcrumbs, .gfg-tabs, .gfg-side, .gfg-rail,
-  .note-footer, .gfg-search-hero { display: none !important; }
+  .note-footer, .gfg-search-hero, .ad-band, .ad-placement { display: none !important; }
   body { background: #fff; }
   .home-intro { display: none; }
   .gfg-layout > .gfg-container { display: block; }

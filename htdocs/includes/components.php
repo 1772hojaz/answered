@@ -13,6 +13,8 @@ if (!defined('APP_BOOTSTRAPPED')) {
     exit;
 }
 
+require_once __DIR__ . '/ads.php';
+
 /**
  * @param array[] $links list of ['label' => ..., 'href' => ...] (href optional)
  */
@@ -216,7 +218,6 @@ function render_left_nav(string $active = '', string $activeSubject = ''): void
         </ul>
       </nav>
       <?php endif; ?>
-      <?php render_side_ad('left'); ?>
     </aside>
     <?php
 }
@@ -274,25 +275,7 @@ function render_right_rail(): void
         <p>Browse every subject and open the notes you need.</p>
         <a class="btn btn-primary btn-block" href="<?= e(url('/subjects')) ?>">Browse subjects</a>
       </section>
-      <?php render_side_ad('right'); ?>
-    </aside>
-    <?php
-}
-
-/** Desktop display-ad placement below the sidebar content. */
-function render_side_ad(string $side): void
-{
-    if (!in_array($side, ['left', 'right'], true)) {
-        return;
-    }
-    $zoneId = (string) config('ads.' . $side . '_zone_id', '');
-    if ($zoneId === '' || !preg_match('/^[A-Za-z0-9_-]+$/D', $zoneId)) {
-        return;
-    }
-    ?>
-    <aside class="gfg-side-ad" aria-label="Advertisement">
-      <span class="gfg-side-ad-label">Advertisement</span>
-      <div id="ad-<?= e($side) ?>" class="gfg-side-ad-slot" data-adcash-zone="<?= e($zoneId) ?>"></div>
+      <?php render_ad_placement('skyscraper'); ?>
     </aside>
     <?php
 }

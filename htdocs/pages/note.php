@@ -117,6 +117,7 @@ $GLOBALS['subject_slug_active'] = (string) $note['subject_slug'];
         <p>Open every note and past paper in this subject.</p>
         <a class="btn btn-primary btn-block" href="<?= e(url('/subjects/' . $note['subject_slug'])) ?>">Go to subject</a>
       </section>
+      <?php render_ad_placement('skyscraper'); ?>
     </aside>
   </div>
 </div>

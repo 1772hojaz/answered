@@ -15,6 +15,7 @@ if (!defined('APP_BOOTSTRAPPED')) {
 }
 
 require_once __DIR__ . '/seo.php';
+require_once __DIR__ . '/ads.php';
 
 function render_layout(string $body): void
 {
@@ -32,8 +33,7 @@ function render_layout(string $body): void
     $flashes = flash_take();
     $searchValue = (string) ($GLOBALS['search_value'] ?? '');
     $activeSubject = (string) ($GLOBALS['subject_slug_active'] ?? '');
-    $hasSideAds = (string) config('ads.left_zone_id', '') !== ''
-        || (string) config('ads.right_zone_id', '') !== '';
+    $hasAds = public_ads_enabled();
 
     try {
         $navSubjects = subjects_with_counts();
@@ -54,9 +54,6 @@ function render_layout(string $body): void
 <html lang="en-ZW">
 <head>
 <meta charset="utf-8">
-<?php if ($hasSideAds): ?>
-<script id="aclib" type="text/javascript" src="https://acscdn.com/script/aclib.js"></script>
-<?php endif; ?>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= e($fullTitle) ?></title>
 <meta name="description" content="<?= e($description) ?>">
@@ -76,7 +73,7 @@ function render_layout(string $body): void
 <script type="application/ld+json"><?= seo_json(seo_structured_data($fullTitle, $description, $canonical)) ?></script>
 <?php endif; ?>
 <?php endif; ?>
-<link rel="stylesheet" href="<?= e(asset('assets/css/app.css')) ?>?v=20261116">
+<link rel="stylesheet" href="<?= e(asset('assets/css/app.css')) ?>?v=20261117-ads">
 </head>
 <body class="gfg<?= $bodyClass !== '' ? ' ' . e($bodyClass) : '' ?>">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -131,7 +128,9 @@ function render_layout(string $body): void
 <?php endif; ?>
 
 <main id="main" class="gfg-main">
+<?php if ($hasAds): ?><div class="gfg-container ad-band"><?php render_ad_placement('leaderboard'); render_ad_placement('mobile'); ?></div><?php endif; ?>
 <?= $body ?>
+<?php if ($hasAds && !$isHome): ?><div class="gfg-container ad-band ad-band--native"><?php render_ad_placement('native'); ?></div><?php endif; ?>
 </main>
 
 <footer class="gfg-footer">
@@ -172,8 +171,8 @@ function render_layout(string $body): void
   </div>
 </footer>
 <script src="<?= e(asset('assets/js/app.js')) ?>?v=20261116"></script>
-<?php if ($hasSideAds): ?>
-<script src="<?= e(asset('assets/js/side-ads.js')) ?>"></script>
+<?php if ($hasAds): ?>
+<script src="<?= e(asset('assets/js/ads.js')) ?>?v=20261117"></script>
 <?php endif; ?>
 </body>
 </html><?php

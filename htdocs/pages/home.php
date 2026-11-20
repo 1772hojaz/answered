@@ -27,13 +27,8 @@ $GLOBALS['body_class'] = 'page-home';
       </form>
       <div class="hero-shortcuts"><span>Start exploring</span><a href="<?= e(url('/subjects')) ?>">Revision notes &nearr;</a><a href="<?= e(url('/past-papers')) ?>">Past papers &nearr;</a></div>
     </div>
-    <div class="study-art" aria-hidden="true">
-      <div class="art-orbit orbit-one"></div><div class="art-orbit orbit-two"></div>
-      <span class="art-spark spark-one">✦</span><span class="art-spark spark-two">✦</span>
-      <div class="art-note"><span class="art-note-label">ONE TOPIC AT A TIME</span><strong>Small steps.<br>Big possibilities.</strong><div class="art-rule"></div><div class="art-rule short"></div><span class="art-note-check">✓</span></div>
-      <div class="art-book book-back"><span>PRACTISE</span></div>
-      <div class="art-book book-front"><span>LEARN. UNDERSTAND. REPEAT.</span><strong>Aa</strong><i></i></div>
-      <div class="art-caption"><span>✓</span> A clearer way to learn</div>
+    <div class="hero-ad">
+      <?php render_ad_placement('native'); ?>
     </div>
   </section>
   <div class="resource-strip" aria-label="Study resources">

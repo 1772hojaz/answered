@@ -47,11 +47,9 @@ return [
         'admin_path' => 'manage-8f3ffdb330600372',
     ],
 
-    // Adcash Display/Banner zones for 160x600 desktop sidebar placements.
-    // AutoTag zone IDs cannot be used here. Empty values disable the slots.
+    // Public ad placements; provider tags are defined in includes/ads.php.
     'ads' => [
-        'left_zone_id' => '',
-        'right_zone_id' => '',
+        'enabled' => true,
     ],
 
     // Images and past-paper PDFs are stored as external links in the
