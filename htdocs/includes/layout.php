@@ -73,7 +73,7 @@ function render_layout(string $body): void
 <script type="application/ld+json"><?= seo_json(seo_structured_data($fullTitle, $description, $canonical)) ?></script>
 <?php endif; ?>
 <?php endif; ?>
-<link rel="stylesheet" href="<?= e(asset('assets/css/app.css')) ?>?v=20261117-ads">
+<link rel="stylesheet" href="<?= e(asset('assets/css/app.css')) ?>?v=20261120-contents">
 </head>
 <body class="gfg<?= $bodyClass !== '' ? ' ' . e($bodyClass) : '' ?>">
 <a class="skip-link" href="#main">Skip to content</a>
@@ -170,7 +170,7 @@ function render_layout(string $body): void
     </div>
   </div>
 </footer>
-<script src="<?= e(asset('assets/js/app.js')) ?>?v=20261116"></script>
+<script src="<?= e(asset('assets/js/app.js')) ?>?v=20261120-contents"></script>
 <?php if ($hasAds): ?>
 <script src="<?= e(asset('assets/js/ads.js')) ?>?v=20261117"></script>
 <?php endif; ?>

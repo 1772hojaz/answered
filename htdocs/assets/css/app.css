@@ -434,6 +434,12 @@ a.chip:hover, a.badge:hover { text-decoration: none; background: var(--brand-lin
 .paper-description { color: var(--muted); margin: 14px 0 0; }
 .paper-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0 0; }
 
+.note-contents { margin: 22px 22px 0; border: 1px solid var(--line); border-radius: 10px; background: var(--brand-soft); }
+.note-contents summary { padding: 14px 16px; cursor: pointer; font-weight: 700; color: var(--brand-dark); }
+.note-contents ol { margin: 0; padding: 0 20px 16px 40px; }
+.note-contents li + li { margin-top: 8px; }
+.note-contents a { display: inline-block; padding: 3px 0; overflow-wrap: anywhere; }
+.note-content :is(h1, h2, h3, h4, h5, h6) { scroll-margin-top: 160px; }
 .note-content { padding: 24px 22px 30px; font-size: 17px; line-height: 1.75; }
 .note-content > *:first-child { margin-top: 0; }
 .note-content > *:last-child { margin-bottom: 0; }
@@ -790,7 +796,7 @@ a, p, h1, h2, h3, td { overflow-wrap: anywhere; }
 
 @media print {
   .gfg-header, .gfg-footer, .breadcrumbs, .gfg-tabs, .gfg-side, .gfg-rail,
-  .note-footer, .gfg-search-hero, .ad-band, .ad-placement { display: none !important; }
+  .note-footer, .note-contents, .gfg-search-hero, .ad-band, .ad-placement { display: none !important; }
   body { background: #fff; }
   .home-intro { display: none; }
   .gfg-layout > .gfg-container { display: block; }
