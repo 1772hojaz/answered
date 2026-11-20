@@ -305,7 +305,7 @@ window.REVISIONHUB = {
   topics: <?= json_encode($topicsForSelect) ?>
 };
 </script>
-<script src="<?= e(asset('assets/js/editor.js')) ?>?v=20261117"></script>
-<script src="<?= e(asset('assets/js/autosave.js')) ?>?v=20261117"></script>
+<script src="<?= e(asset('assets/js/editor.js')) ?>?v=20261120"></script>
+<script src="<?= e(asset('assets/js/autosave.js')) ?>?v=20261120"></script>
 
 <?php admin_footer();
