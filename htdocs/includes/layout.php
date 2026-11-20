@@ -73,7 +73,7 @@ function render_layout(string $body): void
 <script type="application/ld+json"><?= seo_json(seo_structured_data($fullTitle, $description, $canonical)) ?></script>
 <?php endif; ?>
 <?php endif; ?>
-<link rel="stylesheet" href="<?= e(asset('assets/css/app.css')) ?>?v=20261120-contents">
+<link rel="stylesheet" href="<?= e(asset('assets/css/app.css')) ?>?v=20261120-resources">
 <noscript><style>.gfg-nav-toggle { display: none; } .gfg-actions { display: flex; }</style></noscript>
 </head>
 <body class="gfg<?= $bodyClass !== '' ? ' ' . e($bodyClass) : '' ?>">
