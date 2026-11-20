@@ -120,7 +120,7 @@ function admin_footer(): void
     ?>
   </div>
 </main>
-<script src="<?= e(asset('assets/js/admin.js')) ?>?v=20261117"></script>
+<script src="<?= e(asset('assets/js/admin.js')) ?>?v=20261120"></script>
 </body>
 </html><?php
 }
