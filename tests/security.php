@@ -61,8 +61,13 @@ try {
         return $key === 'app.base_path' ? $testBase : $default;
     }
     require $source . '/includes/uploads.php';
+    require $source . '/includes/functions.php';
     require $source . '/includes/sanitize.php';
     check(validate_media_url('https://example.com/paper.pdf') !== null, 'valid media URL accepted');
+    check(public_media_url('https://example.com/paper.pdf') === 'https://example.com/paper.pdf', 'stored external media is revalidated before rendering');
+    foreach (['javascript:alert(1)', '//example.com/paper.pdf', '/config/config.php', '/uploads/missing.pdf'] as $unsafe) {
+        check(public_media_url($unsafe) === null, 'invalid stored media is not rendered: ' . $unsafe);
+    }
     foreach (['javascript:alert(1)', '//example.com/a', 'https://user:pass@example.com/a', 'https://example.com\\@evil.test/a', 'https://bad host/a'] as $url) {
         check(validate_media_url($url) === null, 'unsafe media URL rejected: ' . $url);
     }
@@ -84,6 +89,7 @@ try {
         check(legacy_upload_file('/uploads/escape.pdf') === null, 'symlink outside uploads rejected');
     }
     $testBase = '/revision';
+    check(public_media_url('/uploads/legacy.pdf') === '/revision/uploads/legacy.pdf', 'legacy media rendering respects subfolder installations');
     check(legacy_upload_file('/revision/uploads/legacy.pdf') !== null, 'subfolder upload resolves');
     check(legacy_upload_file('/revision-other/uploads/legacy.pdf') === null, 'base path boundary enforced');
     $testBase = '';
