@@ -135,7 +135,7 @@ function current_path(): string
 {
     // Explicit route parameter (clean_urls = false).
     if (isset($_GET['p'])) {
-        return trim(rawurldecode((string) $_GET['p']), '/');
+        return trim(rawurldecode(query_string('p')), '/');
     }
 
     // Fall back to the request path so that URLs also work when
