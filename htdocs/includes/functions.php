@@ -394,6 +394,18 @@ function paper_by_id(int $id): ?array
     return q_row('SELECT * FROM past_papers WHERE id = ?', [$id]);
 }
 
+/** Read scalar query values without array-to-string warnings. */
+function query_string(string $key, string $default = ''): string
+{
+    return isset($_GET[$key]) && is_string($_GET[$key]) ? trim($_GET[$key]) : $default;
+}
+
+function query_int(string $key, int $default = 1, int $minimum = 1): int
+{
+    $value = filter_var(query_string($key), FILTER_VALIDATE_INT, ['options' => ['min_range' => $minimum, 'max_range' => 1000000]]);
+    return $value === false ? $default : (int) $value;
+}
+
 function all_papers_paginated(int $page, int $perPage = 20): array
 {
     $offset = max(0, ($page - 1) * $perPage);
