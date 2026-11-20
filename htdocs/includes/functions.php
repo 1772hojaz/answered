@@ -143,7 +143,7 @@ function current_path(): string
     $uri = (string) ($_SERVER['REQUEST_URI'] ?? '/');
     $path = (string) (parse_url($uri, PHP_URL_PATH) ?: '/');
     $base = rtrim((string) config('app.base_path', ''), '/');
-    if ($base !== '' && strpos($path, $base) === 0) {
+    if ($base !== '' && ($path === $base || strpos($path, $base . '/') === 0)) {
         $path = substr($path, strlen($base));
     }
     $path = preg_replace('#^/?index\.php$#', '', $path) ?? $path;
