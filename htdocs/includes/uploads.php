@@ -101,6 +101,14 @@ function validate_paper_url(string $url): array
     return ['ok' => true, 'url' => $clean];
 }
 
+/** Revalidate stored media before rendering, including legacy upload paths. */
+function public_media_url(string $path): ?string
+{
+    $external = validate_media_url($path);
+    if ($external !== null) { return $external; }
+    return legacy_upload_file($path) !== null ? public_path($path) : null;
+}
+
 /**
  * Does any stored content still reference this image path?
  */
