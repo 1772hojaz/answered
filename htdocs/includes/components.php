@@ -61,7 +61,7 @@ function render_subject_grid(array $subjects): void
 
     echo '<div class="gfg-card-grid">';
     foreach ($subjects as $subject) {
-        $icon = $subject['icon_path'] ?? null;
+        $icon = public_media_url((string) ($subject['icon_path'] ?? ''));
         $letter = mb_strtoupper(mb_substr((string) $subject['name'], 0, 1, 'UTF-8'), 'UTF-8');
         $noteCount = isset($subject['note_count']) ? (int) $subject['note_count'] : null;
         $paperCount = isset($subject['paper_count']) ? (int) $subject['paper_count'] : null;
@@ -170,8 +170,8 @@ function render_paper_list(array $papers): void
         echo '</div>';
         echo '</div>';
         echo '<div class="gfg-item-actions">';
-        if (!empty($paper['file_path'])) {
-            $paperHref = public_path((string) $paper['file_path']);
+        $paperHref = public_media_url((string) ($paper['file_path'] ?? ''));
+        if ($paperHref !== null) {
             echo '<a class="btn btn-sm" href="' . e($paperHref) . '" target="_blank" rel="noopener">View</a>';
             echo '<a class="btn btn-sm btn-primary" href="' . e($paperHref) . '" download>Download</a>';
         }
