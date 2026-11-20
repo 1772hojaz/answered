@@ -484,6 +484,10 @@ a.chip:hover, a.badge:hover { text-decoration: none; background: var(--brand-lin
 
 /* ------------------------------------------------------- past papers --- */
 
+.paper-filters { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; padding: 18px; margin-bottom: 24px; background: var(--brand-soft); border: 1px solid var(--line); border-radius: 12px; }
+.paper-filters label { display: grid; gap: 5px; flex: 1 1 130px; font-size: 13px; font-weight: 600; }
+.paper-filters select { width: 100%; min-width: 0; min-height: 44px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); font: inherit; }
+
 .paper-viewer { padding: 0 22px 24px; }
 .paper-frame { width: 100%; height: min(78vh, 900px); min-height: 420px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
 .paper-fallback { text-align: center; color: var(--muted); font-size: 14px; margin: 12px 0 0; }
@@ -796,7 +800,7 @@ a, p, h1, h2, h3, td { overflow-wrap: anywhere; }
 
 @media print {
   .gfg-header, .gfg-footer, .breadcrumbs, .gfg-tabs, .gfg-side, .gfg-rail,
-  .note-footer, .note-contents, .gfg-search-hero, .ad-band, .ad-placement { display: none !important; }
+  .note-footer, .note-contents, .paper-filters, .gfg-search-hero, .ad-band, .ad-placement { display: none !important; }
   body { background: #fff; }
   .home-intro { display: none; }
   .gfg-layout > .gfg-container { display: block; }
