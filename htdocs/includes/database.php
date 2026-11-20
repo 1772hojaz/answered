@@ -62,10 +62,15 @@ function q(string $sql, array $params = []): PDOStatement
         $stmt = db()->prepare($sql);
         $stmt->execute($params);
     } catch (PDOException $e) {
-        // Friendly message when the schema has not been imported yet.
+        error_log('Database query failed [' . $e->getCode() . ']: ' . $e->getMessage());
+        // An older schema must produce an actionable error, not a blank page.
+        if ((string) $e->getCode() === '42S22') {
+            http_response_code(500);
+            exit('Database upgrade required. The database schema does not match this application version. For an existing installation, import migrations/20261116_admin.sql through phpMyAdmin once. Keep your existing database and configuration.');
+        }
         if ((string) $e->getCode() === '42S02' || strpos((string) $e->getMessage(), "42S02") !== false) {
             http_response_code(500);
-            exit('The database tables are missing. Run install.php (or import schema.sql) to finish the setup.');
+            exit('Database tables are missing. For a new installation, import schema.sql. For an existing installation, check whether migrations/20261116_admin.sql has been imported through phpMyAdmin. Do not delete your existing database.');
         }
         throw $e;
     }
