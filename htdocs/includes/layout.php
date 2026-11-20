@@ -94,7 +94,7 @@ function render_layout(string $body): void
       <form class="gfg-search" action="<?= e(form_action('/search')) ?>" method="get" role="search">
         <?= route_field('/search') ?>
         <label class="visually-hidden" for="gfg-search-input">Search notes and past papers</label>
-        <input id="gfg-search-input" type="search" name="q" value="<?= e($searchValue) ?>" placeholder="Search notes, subjects, past papers…" autocomplete="off">
+        <input id="gfg-search-input" type="search" name="q" value="<?= e($searchValue) ?>" placeholder="Search notes, subjects, past papers…" maxlength="200" autocomplete="off">
         <button type="submit" aria-label="Search">
           <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg>
         </button>
