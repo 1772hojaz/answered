@@ -2,10 +2,12 @@
 from pathlib import Path
 import argparse
 import re
+import tempfile
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / 'htdocs'
+PUBLIC_EXTENSIONS = {'.php', '.css', '.js', '.sql', '.md', '.pdf', '.png', '.jpg', '.jpeg', '.gif', '.webp', '.avif', '.svg', '.ico', '.woff', '.woff2'}
 REQUIRED = {
     'index.php', '.htaccess', 'config/.htaccess', 'config/config.sample.php',
     'includes/bootstrap.php', 'includes/database.php', 'includes/functions.php',
@@ -20,6 +22,9 @@ REQUIRED = {
 
 
 def build(output: Path) -> int:
+    output = output.resolve()
+    if output == SOURCE.resolve() or SOURCE.resolve() in output.parents:
+        raise ValueError('Write the release archive outside the website document root')
     files = {}
     for source in SOURCE.rglob('*'):
         if source.is_symlink():
@@ -27,6 +32,10 @@ def build(output: Path) -> int:
         if not source.is_file():
             continue
         name = source.relative_to(SOURCE).as_posix()
+        if any(part.startswith('.') for part in source.relative_to(SOURCE).parts if part != '.htaccess'):
+            continue
+        if source.name != '.htaccess' and source.suffix.lower() not in PUBLIC_EXTENSIONS:
+            continue
         if name.startswith('config/') and name not in {'config/.htaccess', 'config/config.sample.php'}:
             continue
         if name.startswith('keys/') and name != 'keys/.htaccess':
@@ -48,18 +57,23 @@ def build(output: Path) -> int:
         if re.search(rb'-----BEGIN (?:RSA |EC |OPENSSH |ENCRYPTED )?PRIVATE KEY-----', source.read_bytes()):
             raise RuntimeError('Private key material cannot be included in a release')
     output.parent.mkdir(parents=True, exist_ok=True)
-    temporary = output.with_suffix(output.suffix + '.tmp')
-    with zipfile.ZipFile(temporary, 'w', zipfile.ZIP_DEFLATED) as archive:
-        for name, source in sorted(files.items()):
-            archive.write(source, name)
-    with zipfile.ZipFile(temporary) as archive:
-        names = set(archive.namelist())
-        assert REQUIRED <= names
-        assert 'htdocs/index.php' not in names
-        assert 'config/config.php' not in names and 'config/config.local.php' not in names
-        assert archive.read('index.php') == (SOURCE / 'index.php').read_bytes()
-        assert archive.testzip() is None
-    temporary.replace(output)
+    with tempfile.NamedTemporaryFile(prefix=output.name + '.', suffix='.tmp', dir=output.parent, delete=False) as handle:
+        temporary = Path(handle.name)
+    try:
+        with zipfile.ZipFile(temporary, 'w', zipfile.ZIP_DEFLATED) as archive:
+            for name, source in sorted(files.items()):
+                archive.write(source, name)
+        with zipfile.ZipFile(temporary) as archive:
+            names = set(archive.namelist())
+            if not REQUIRED <= names or 'htdocs/index.php' in names or archive.testzip() is not None:
+                raise RuntimeError('Release archive validation failed')
+            if {'config/config.php', 'config/config.local.php'} & names:
+                raise RuntimeError('Private configuration cannot be included in a release')
+            if archive.read('index.php') != (SOURCE / 'index.php').read_bytes():
+                raise RuntimeError('The entry point changed while packaging; build the release again')
+        temporary.replace(output)
+    finally:
+        temporary.unlink(missing_ok=True)
     return len(files)
 
 
