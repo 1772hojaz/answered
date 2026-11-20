@@ -4,7 +4,7 @@
   if (!form) return;
   var area = form.querySelector('[data-editor-area]');
   var status = form.querySelector('[data-autosave-status]');
-  var baseline = snapshot(), pending = null, submitting = false, allowSubmit = false;
+  var baseline = snapshot(), pending = null, submitting = false, allowSubmit = false, waitingForSubmit = false;
   var blocked = !!document.querySelector('[data-recovery-banner]');
   function snapshot() {
     var values = {};
@@ -17,7 +17,7 @@
     if (area) data.set('content', area.innerHTML);
     data.set('autosave_action', action);
     return fetch(form.dataset.autosaveUrl, { method: 'POST', body: data, credentials: 'same-origin' })
-      .then(function (response) { return response.json().then(function (result) { if (!response.ok || !result.ok) throw new Error(result.error || 'Recovery request failed.'); return result; }); });
+      .then(function (response) { return response.json().catch(function () { throw new Error('Recovery could not be saved. Check your connection or sign in again.'); }).then(function (result) { if (!response.ok || !result.ok) throw new Error(result.error || 'Recovery request failed.'); return result; }); });
   }
   function save() {
     if (pending || blocked || submitting || snapshot() === baseline) return pending || Promise.resolve();
@@ -36,12 +36,20 @@
   });
   form.addEventListener('submit', function (event) {
     if (event.submitter && event.submitter.name === 'preview') return;
-    if (allowSubmit) { submitting = true; return; }
+    if (allowSubmit) {
+      submitting = true;
+      // A later confirmation handler may still cancel the submission.
+      Promise.resolve().then(function () { if (event.defaultPrevented) submitting = false; });
+      return;
+    }
     event.preventDefault();
+    if (waitingForSubmit) return;
     var submitter = event.submitter;
-    submitting = true;
+    waitingForSubmit = true;
     Promise.resolve(pending).then(function () {
-      allowSubmit = true; form.requestSubmit(submitter || undefined);
+      allowSubmit = true;
+      try { form.requestSubmit(submitter || undefined); }
+      finally { allowSubmit = false; waitingForSubmit = false; }
     });
   });
   document.addEventListener('click', function (event) {
