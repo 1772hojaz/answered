@@ -458,33 +458,47 @@ function stats_counts(): array
  */
 function search_all(string $term, int $limit = 25): array
 {
-    $like = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\%', '\_'], $term) . '%';
+    $term = mb_substr(trim(preg_replace('/\\s+/u', ' ', $term) ?? ''), 0, 200, 'UTF-8');
+    if ($term === '') { return ['subjects' => [], 'notes' => [], 'papers' => []]; }
+    $words = array_slice(explode(' ', $term), 0, 12);
+    $limit = max(1, min(100, $limit));
+    $pattern = static function (string $value): string {
+        return '%' . str_replace(['=', '%', '_'], ['==', '=%', '=_'], $value) . '%';
+    };
+    $search = static function (array $columns) use ($words, $pattern): array {
+        $clauses = []; $params = [];
+        foreach ($words as $word) {
+            $matches = [];
+            foreach ($columns as $column) {
+                $matches[] = $column . " LIKE ? ESCAPE '='";
+                $params[] = $pattern($word);
+            }
+            $clauses[] = '(' . implode(' OR ', $matches) . ')';
+        }
+        return [implode(' AND ', $clauses), $params];
+    };
+    list($where, $params) = $search(['name', 'description']);
+    $subjects = q_all('SELECT * FROM subjects WHERE ' . $where . " ORDER BY CASE WHEN name LIKE ? ESCAPE '=' THEN 0 ELSE 1 END, name, id LIMIT " . $limit,
+        array_merge($params, [$pattern($term)]));
 
-    $subjects = q_all(
-        'SELECT * FROM subjects WHERE name LIKE ? OR description LIKE ? ORDER BY name LIMIT ' . $limit,
-        [$like, $like]
-    );
-
+    list($where, $params) = $search(['n.title', 'n.content', 's.name', 't.name', 'n.level', 'n.syllabus_code']);
     $notes = q_all(
         'SELECT n.id, n.title, n.slug, n.content, s.name AS subject_name, s.slug AS subject_slug
-         FROM notes n
-         JOIN subjects s ON s.id = n.subject_id
-         WHERE n.deleted_at IS NULL AND n.status = ? AND (n.title LIKE ? OR n.content LIKE ?)
-         ORDER BY n.title LIMIT ' . $limit,
-        ['published', $like, $like]
+         FROM notes n JOIN subjects s ON s.id = n.subject_id
+         LEFT JOIN topics t ON t.id = n.topic_id
+         WHERE n.deleted_at IS NULL AND n.status = ? AND ' . $where .
+         " ORDER BY CASE WHEN n.title LIKE ? ESCAPE '=' THEN 0 ELSE 1 END, n.title, n.id LIMIT " . $limit,
+        array_merge(['published'], $params, [$pattern($term)])
     );
-
+    list($where, $params) = $search(['p.title', 'p.description', 's.name', 'p.year', 'p.exam_board', 'p.paper_number', 'p.level', 'p.syllabus_code', 'p.exam_session']);
     $papers = q_all(
         'SELECT p.id, p.title, p.slug, p.year, p.exam_board, p.paper_number,
                 s.name AS subject_name, s.slug AS subject_slug
-         FROM past_papers p
-         JOIN subjects s ON s.id = p.subject_id
-         WHERE p.deleted_at IS NULL AND (p.title LIKE ? OR p.description LIKE ? OR s.name LIKE ?
-            OR p.year LIKE ? OR p.exam_board LIKE ? OR p.paper_number LIKE ?)
-         ORDER BY p.year DESC, p.title LIMIT ' . $limit,
-        [$like, $like, $like, $like, $like, $like]
+         FROM past_papers p JOIN subjects s ON s.id = p.subject_id
+         WHERE p.deleted_at IS NULL AND ' . $where .
+         " ORDER BY CASE WHEN p.title LIKE ? ESCAPE '=' THEN 0 ELSE 1 END, p.year DESC, p.title, p.id LIMIT " . $limit,
+        array_merge($params, [$pattern($term)])
     );
-
     return ['subjects' => $subjects, 'notes' => $notes, 'papers' => $papers];
 }
 
