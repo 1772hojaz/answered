@@ -126,7 +126,7 @@
     if (toolbar) {
       toolbar.addEventListener('mousedown', function (event) {
         // Keep the caret where it is when a toolbar button is pressed.
-        if (event.target.closest('button, select')) event.preventDefault();
+        if (event.target.closest('button')) event.preventDefault();
       });
 
       toolbar.addEventListener('click', function (event) {
