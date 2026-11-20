@@ -70,9 +70,9 @@ $GLOBALS['subject_slug_active'] = (string) $subject['slug'];
       </header>
 
       <nav class="gfg-tabs" aria-label="Subject sections">
-        <a href="<?= e(url('/subjects/' . $subject['slug'])) ?>" class="<?= $section === 'all' ? 'is-active' : '' ?>">Overview</a>
-        <a href="<?= e(url('/subjects/' . $subject['slug'] . '/notes')) ?>" class="<?= $section === 'notes' ? 'is-active' : '' ?>">Notes <span class="tab-count"><?= count($notes) ?></span></a>
-        <a href="<?= e(url('/subjects/' . $subject['slug'] . '/past-papers')) ?>" class="<?= $section === 'papers' ? 'is-active' : '' ?>">Past Papers <span class="tab-count"><?= count($papers) ?></span></a>
+        <a href="<?= e(url('/subjects/' . $subject['slug'])) ?>" class="<?= $section === 'all' ? 'is-active' : '' ?>"<?= $section === 'all' ? ' aria-current="page"' : '' ?>>Overview</a>
+        <a href="<?= e(url('/subjects/' . $subject['slug'] . '/notes')) ?>" class="<?= $section === 'notes' ? 'is-active' : '' ?>"<?= $section === 'notes' ? ' aria-current="page"' : '' ?>>Notes <span class="tab-count"><?= count($notes) ?></span></a>
+        <a href="<?= e(url('/subjects/' . $subject['slug'] . '/past-papers')) ?>" class="<?= $section === 'papers' ? 'is-active' : '' ?>"<?= $section === 'papers' ? ' aria-current="page"' : '' ?>>Past Papers <span class="tab-count"><?= count($papers) ?></span></a>
       </nav>
 
       <?php if ($section !== 'papers'): ?>
