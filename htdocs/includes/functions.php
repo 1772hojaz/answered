@@ -258,7 +258,9 @@ function format_date(?string $date): string
 
 function excerpt_from_html(string $html, int $length = 160): string
 {
-    $text = trim(preg_replace('/\s+/', ' ', strip_tags($html)) ?? '');
+    $html = preg_replace('#<(?:br\\b[^>]*|/(?:p|div|h[1-6]|li|tr|blockquote))>#i', ' ', $html) ?? $html;
+    $text = html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    $text = trim(preg_replace('/[\\s\\x{00A0}]+/u', ' ', $text) ?? '');
     if (mb_strlen($text, 'UTF-8') <= $length) {
         return $text;
     }
