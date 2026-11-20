@@ -89,6 +89,11 @@ deployed as plain files over FTP.
 
 ## Local development
 
+Public search combines words across titles, subjects, topics, study levels,
+syllabus codes, and paper years/sessions. The past-paper listing has subject,
+year, and study-level filters that stay selected across pagination. Longer
+notes include a collapsible section index.
+
 Any PHP 7.4+ with a MySQL database works:
 
 ```bash
@@ -182,6 +187,10 @@ private-file restrictions that Apache reads from `.htaccess`.
 
 Run the security regression checks from the repository root with
 `php tests/security.php`. They use temporary fixtures and require no database.
+Run `php tests/public_resources.php` for search, filtering, and template checks
+with an isolated in-memory SQLite database (`pdo_sqlite` is needed only for
+this test). Run `node --test tests/*.cjs` for JavaScript behavior checks and
+`python -m unittest discover -s tests -p "test_*.py"` for the release packager.
 
 * **Passwords** — stored only as `password_hash()` bcrypt hashes.
 * **SQL** — every query uses PDO prepared statements; no string interpolation

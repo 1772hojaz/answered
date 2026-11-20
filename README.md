@@ -12,6 +12,9 @@ dashboard.
 - Read formatted notes with images.
 - Preview and download past-paper PDFs from external links.
 - Search published revision materials.
+- Combine search words across subjects, topics, years, and syllabus details.
+- Filter past papers by subject, year, and study level.
+- Jump between sections of longer notes using the collapsible contents index.
 - Create, preview, publish, and manage content from the admin dashboard.
 - Configure desktop banner advertisements in the left and right sidebars.
 
@@ -185,6 +188,17 @@ also work directly. Submit the production sitemap to Google Search Console after
 deployment. No verification token is bundled with the application.
 
 Run `php tests/seo.php` for the database-free SEO checks.
+
+Run `php tests/public_resources.php` for isolated search, filter, pagination,
+and template checks. This development-only suite also needs `pdo_sqlite`;
+production continues to use MySQL. Run `node --test tests/*.cjs` for browser
+behavior checks and `python -m unittest discover -s tests -p "test_*.py"` for
+release packaging checks. JavaScript tests use simulated browser objects;
+they do not replace checking the pages in a real browser.
+
+The release packager excludes hidden files, backups, archives, and unsupported
+file types. It validates a temporary archive before replacing the previous
+release. Keep the output ZIP outside `htdocs/`.
 
 ## Security checks
 
