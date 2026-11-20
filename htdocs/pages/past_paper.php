@@ -11,7 +11,7 @@ if ($paper === null) {
     return;
 }
 
-$paperUrl = public_path((string) $paper['file_path']);
+$paperUrl = public_media_url((string) $paper['file_path']);
 $meta = [];
 if (!empty($paper['year'])) {
     $meta[] = (string) $paper['year'];
@@ -65,18 +65,22 @@ $GLOBALS['subject_slug_active'] = (string) $paper['subject_slug'];
           <?php if (!empty($paper['description'])): ?>
             <p class="paper-description"><?= nl2br(e($paper['description'])) ?></p>
           <?php endif; ?>
-          <p class="paper-actions">
+          <?php if ($paperUrl !== null): ?><p class="paper-actions">
             <a class="btn btn-primary" href="<?= e($paperUrl) ?>" download>Download PDF</a>
             <a class="btn" href="<?= e($paperUrl) ?>" target="_blank" rel="noopener">Open in new tab</a>
-          </p>
+          </p><?php endif; ?>
         </header>
 
         <div class="paper-viewer">
-          <iframe class="paper-frame" src="<?= e($paperUrl) ?>" title="<?= e($paper['title']) ?>" loading="lazy"></iframe>
+          <?php if ($paperUrl !== null): ?>
+          <iframe class="paper-frame" src="<?= e($paperUrl) ?>" title="<?= e($paper['title']) ?>" loading="lazy" referrerpolicy="no-referrer"></iframe>
           <p class="paper-fallback">
             If the paper does not display,
             <a href="<?= e($paperUrl) ?>" target="_blank" rel="noopener">open the PDF directly</a>.
           </p>
+          <?php else: ?>
+          <p class="empty">The PDF is currently unavailable. Browse this subject for another past paper.</p>
+          <?php endif; ?>
         </div>
       </article>
     </section>
