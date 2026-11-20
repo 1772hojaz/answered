@@ -52,8 +52,9 @@
   document.addEventListener('submit', function (event) {
     var form = event.target;
     if (!(form instanceof HTMLFormElement)) return;
+    if (event.defaultPrevented) return;
 
-    var message = form.getAttribute('data-confirm');
+    var message = (event.submitter && event.submitter.getAttribute('data-confirm')) || form.getAttribute('data-confirm');
     if (message && !window.confirm(message)) {
       event.preventDefault();
       event.stopPropagation();
