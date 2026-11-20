@@ -54,7 +54,7 @@
       }
       if (tag === 'IMG') {
         var src = child.getAttribute('src') || '';
-        if (!/^https?:\/\//i.test(src) && src.indexOf('/uploads/') === -1) { child.remove(); return; }
+        if (!/^https?:\/\//i.test(src) && !/^\/(?!\/)(?:[^\s\\/]+\/)*uploads\/[^\s\\]+$/i.test(src)) { child.remove(); return; }
       }
       walk(child);
     });
