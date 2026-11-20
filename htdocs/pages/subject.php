@@ -34,6 +34,7 @@ foreach ($topics as $topic) {
 }
 
 $subjectLabel = 'ZIMSEC ' . $subject['name'];
+$subjectIcon = public_media_url((string) ($subject['icon_path'] ?? ''));
 $resourceLabel = $section === 'notes' ? 'Revision Notes' : ($section === 'papers' ? 'Past Papers' : 'Notes & Past Papers');
 $GLOBALS['page_title'] = $subjectLabel . ' - ' . $resourceLabel;
 $GLOBALS['page_description'] = 'Explore ' . $subjectLabel . ' ' . strtolower($resourceLabel) . ' on Answered. '
@@ -55,8 +56,8 @@ $GLOBALS['subject_slug_active'] = (string) $subject['slug'];
       ]); ?>
 
       <header class="gfg-page-head subject-header">
-        <?php if (!empty($subject['icon_path'])): ?>
-          <img class="subject-header-icon" src="<?= e($subject['icon_path']) ?>" alt="" loading="lazy">
+        <?php if ($subjectIcon !== null): ?>
+          <img class="subject-header-icon" src="<?= e($subjectIcon) ?>" alt="" loading="lazy">
         <?php else: ?>
           <span class="subject-header-letter" aria-hidden="true"><?= e(mb_strtoupper(mb_substr((string) $subject['name'], 0, 1, 'UTF-8'), 'UTF-8')) ?></span>
         <?php endif; ?>
