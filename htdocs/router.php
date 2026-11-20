@@ -17,7 +17,7 @@ $path = rawurldecode($path);
 if (preg_match('/[\x00-\x1F\x7F\\\\]/', $path)
     || preg_match('#(?:^|/)\.{1,2}(?:/|$)#', $path)
     || preg_match('#(?:^|/)\.(?!well-known(?:/|$))#i', $path)
-    || preg_match('#(?:^|/)(?:config|includes)(?:/|$)#i', $path)
+    || preg_match('#(?:^|/)(?:config|includes|keys)(?:/|$)#i', $path)
     || preg_match('/\.(?:sql|md|log|yml|yaml|json|lock|ini|bak|backup|old|orig|save|swp)$/i', $path)
     || preg_match('#^/uploads/.*\.(?:php[0-9]?|phtml|phar|pl|py|cgi|sh|shtml)(?:/|$)#i', $path)) {
     http_response_code(404);

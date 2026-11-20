@@ -133,7 +133,7 @@ try {
         }
         usleep(50000);
     }
-    foreach (['/.env', '/.htaccess', '/schema.sql', '/README.md', '/config/config.php', '/config/config.local.php', '/includes/bootstrap.php', '/%63onfig/config.php', '/%2e%2e/README.md', '/uploads/.htaccess', '/uploads/payload.php', '/.well-known/.env'] as $path) {
+    foreach (['/.env', '/.htaccess', '/schema.sql', '/README.md', '/config/config.php', '/config/config.local.php', '/includes/bootstrap.php', '/keys/privatekey.txt', '/keys/ca.key', '/%6beys/privatekey.txt', '/%63onfig/config.php', '/%2e%2e/README.md', '/uploads/.htaccess', '/uploads/payload.php', '/.well-known/.env'] as $path) {
         check($request($path)[0] === 404, 'private route blocked: ' . $path);
     }
     check($request('/assets/css/app.css')[0] === 200, 'public asset served');
