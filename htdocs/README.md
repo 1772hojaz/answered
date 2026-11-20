@@ -158,17 +158,22 @@ Admin login → Dashboard → Past papers → Add past paper
 
 ---
 
-## Sidebar advertising
+## Advertising
 
-Create two Adcash Display/Banner zones sized **160 x 600**, then put their
-zone IDs in `ads.left_zone_id` and `ads.right_zone_id` in `config/config.php`.
-The placements sit below the existing left and right sidebar content and
-load only on desktop screens at least 1280 pixels wide. Empty zone IDs leave
-the placements disabled. AutoTag zones cannot be used for these placements.
+The supplied answered.qzz.io tags are defined in `includes/ads.php`. A 160 x 600
+banner appears below the desktop right sidebar, a 728 x 90 banner appears below
+navigation on wide screens, a 320 x 50 banner replaces it on smaller screens,
+and a native banner replaces the homepage hero illustration. On other public
+pages the native banner appears below the content.
+Fixed banners use separate `ad-frame.php` documents; `assets/js/ads.js` loads
+placements once, near the viewport, when they fit. Advertising is excluded from
+admin screens, search results, error pages, and printing.
 
-Upload `includes/layout.php`, `includes/components.php`, `assets/css/app.css`,
-`assets/js/side-ads.js`, and the updated `config/config.php` after configuring
-the zones.
+Set `ads.enabled` to `false` in your private config to disable these placements.
+Upload `includes/ads.php`, `ad-frame.php`, `assets/js/ads.js`, the updated public
+layout/components/note template, and `assets/css/app.css`. The old sidebar
+loader and zone IDs are no longer used. Provider approval and ad fill must be
+checked on the configured production domain.
 
 ## Security notes
 

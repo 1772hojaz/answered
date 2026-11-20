@@ -81,6 +81,12 @@ not uploaded to the hosting account by the application.
    existing `htdocs/` directory. Enable **Show hidden files** and include all
    `.htaccess` files. The entry point must be `htdocs/index.php`, without an
    extra `htdocs/` folder inside it.
+   For a complete update ZIP, run `python tools/package_release.py` and extract
+   the resulting `answered-design-update.zip` into the server's existing
+   `htdocs/` directory. The archive contains `index.php` at its root. Preserve
+   the server's private `config/config.php`; the ZIP does not contain credentials.
+   The update package excludes the one-time installer. Use the source checkout
+   for a new installation that still needs setup.
 5. For a new installation, set `app.install_token` to a private random value
    of at least 32 characters. For example, generate one locally with:
 
@@ -96,25 +102,31 @@ not uploaded to the hosting account by the application.
 7. Sign in through the admin folder configured by `app.admin_path`. Its value
    must match the actual uploaded directory name.
 
-## Sidebar advertisements
+## Public advertisements
 
-Create two Adcash **Display/Banner** zones sized **160 x 600**, then enter
-their zone IDs in `htdocs/config/config.php`:
+The public site uses the supplied answered.qzz.io tags defined in
+`htdocs/includes/ads.php`:
 
-```php
-'ads' => [
-    'left_zone_id'  => 'YOUR_LEFT_BANNER_ZONE_ID',
-    'right_zone_id' => 'YOUR_RIGHT_BANNER_ZONE_ID',
-],
-```
+- A 160 x 600 banner below the right sidebar, on screens at least 1280px wide.
+- A 728 x 90 banner below the navigation, only when the page has enough width.
+- A 320 x 50 banner in the same position on smaller screens, instead of the leaderboard.
+- One native banner replacing the homepage hero illustration; on other pages,
+  it appears below the content. This placement also works on mobile screens.
 
-The banners sit below the existing content in the left and right sidebars.
-They load on screens at least 1280 pixels wide. Empty zone IDs disable the
-placements. AutoTag zone IDs cannot be used as Display/Banner zone IDs.
+Placements are labelled Advertisement. They load once, near the viewport.
+Fixed banners run in separate sandboxed documents through `ad-frame.php` to
+preserve the provider's synchronous tags and separate their `atOptions` values.
+The native script loads asynchronously after its target container exists.
+Admin screens, internal search, error pages, and print layouts have no ads.
 
-For an existing deployment, upload the updated configuration, both
-`includes/layout.php` and `includes/components.php`, `assets/css/app.css`,
-and `assets/js/side-ads.js`, preserving their paths inside `htdocs/`.
+Set `ads.enabled` to `false` in your private `config/config.php` to disable all
+public placements. Old sidebar zone settings are no longer used. Upload the
+updated public PHP templates, `includes/ads.php`, `ad-frame.php`,
+`assets/js/ads.js`, and `assets/css/app.css`. The old `assets/js/side-ads.js`
+file is no longer needed. Actual ad fill depends on the provider and its
+configuration for the production domain.
+
+Run `php tests/ads.php` and `node --test tests/ads_loader.cjs` for placement checks.
 
 ## Local development
 
@@ -200,4 +212,4 @@ rate limiter.
 | Database tables are missing | Import `schema.sql` in phpMyAdmin or complete initial setup. |
 | Clean URLs return 404 | Set `app.clean_urls` to `false` or check the host's rewrite configuration. |
 | Login temporarily unavailable | Check PHP temporary-directory permissions and server logs. |
-| Sidebar ads are missing | Supply Display/Banner zone IDs, upload the ad-related files, and check at a desktop width of at least 1280 pixels. |
+| Ads are missing | Check `ads.enabled`, upload the new ad files, confirm banner width requirements, and check provider domain approval and browser ad blocking. |
