@@ -3,13 +3,20 @@
  * Search across subjects, notes and past papers.
  */
 
-$term = trim((string) ($_GET['q'] ?? ''));
+$term = mb_substr(query_string('q'), 0, 200, 'UTF-8');
 $hasQuery = $term !== '';
 
 $results = ['subjects' => [], 'notes' => [], 'papers' => []];
 if ($hasQuery) {
-    $results = search_all($term, 25);
+    $results = search_all($term, 26);
 }
+
+$hasMore = false;
+foreach ($results as &$matches) {
+    $hasMore = $hasMore || count($matches) > 25;
+    $matches = array_slice($matches, 0, 25);
+}
+unset($matches);
 
 $total = count($results['subjects']) + count($results['notes']) + count($results['papers']);
 
@@ -36,7 +43,7 @@ $GLOBALS['search_value'] = $term;
       <form class="gfg-search-form" action="<?= e(form_action('/search')) ?>" method="get" role="search">
         <?= route_field('/search') ?>
         <label class="visually-hidden" for="search-input">Search notes, subjects and past papers</label>
-        <input id="search-input" type="search" name="q" value="<?= e($term) ?>" placeholder="e.g. differentiation" autofocus autocomplete="off">
+        <input id="search-input" type="search" name="q" value="<?= e($term) ?>" placeholder="e.g. Biology cells or Mathematics 2024" maxlength="200" autocomplete="off">
         <button type="submit" class="btn btn-primary">Search</button>
       </form>
 
@@ -45,7 +52,8 @@ $GLOBALS['search_value'] = $term;
       <?php elseif ($total === 0): ?>
         <p class="empty">No results found for &ldquo;<?= e($term) ?>&rdquo;. Try a different keyword.</p>
       <?php else: ?>
-        <p class="search-count"><?= $total ?> result<?= $total === 1 ? '' : 's' ?> for &ldquo;<?= e($term) ?>&rdquo;</p>
+        <p class="search-count"><?= $hasMore ? 'Showing ' : '' ?><?= $total ?> result<?= $total === 1 ? '' : 's' ?> for &ldquo;<?= e($term) ?>&rdquo;</p>
+        <?php if ($hasMore): ?><p class="field-note">More matches are available. Add a subject, topic, or year to narrow your search.</p><?php endif; ?>
 
         <?php if ($results['subjects']): ?>
           <section class="gfg-block">
